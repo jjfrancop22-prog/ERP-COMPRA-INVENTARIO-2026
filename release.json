@@ -1,0 +1,16 @@
+{
+  "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
+  "version": "V4.0.0-C14.1",
+  "build": "C14.1",
+  "channel": "stable-netlify-production",
+  "releasedAt": "2026-08-21",
+  "firebaseProjectId": "psi-kardex",
+  "hosting": "netlify",
+  "sourceControl": "github",
+  "notes": [
+    "Base C14.0-R2 validada",
+    "Firebase SDK unificado 10.12.5",
+    "Bootstrap Firebase para dominio nuevo",
+    "Deploy estático GitHub + Netlify"
+  ]
+}

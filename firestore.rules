@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function profile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function active() { return signedIn() && profile().active == true; }
+    function role() { return active() ? profile().role : ""; }
+    function isAdmin() { return role() == "Administrador"; }
+    function isQuality() { return role() == "Calidad"; }
+    function isSupervisor() { return role() == "Supervisor"; }
+    function isPurchases() { return role() == "Compras"; }
+    function isFinance() { return role() == "Finanzas"; }
+    function isConsulta() { return role() == "Consulta"; }
+    function operationalReader() {
+      return active() && role() in ["Administrador","Compras","Calidad","Supervisor","Finanzas","Consulta"];
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list, create, update, delete: if isAdmin();
+    }
+
+    match /providers/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isQuality();
+    }
+    match /products/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isQuality();
+    }
+    match /requests/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isPurchases() || isQuality();
+    }
+    match /quotations/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isPurchases() || isQuality();
+    }
+    match /orders/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isPurchases() || isQuality() || isSupervisor();
+    }
+    match /receptions/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isPurchases() || isQuality();
+    }
+    match /inventory/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isQuality();
+    }
+    match /technicalServices/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin();
+    }
+    match /invoices/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isFinance();
+    }
+    match /payables/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isFinance();
+    }
+    match /payments/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin() || isFinance();
+    }
+    match /supplierEvaluations/{id} {
+      allow read: if operationalReader();
+      allow write: if isAdmin();
+    }
+
+    // C13.8 Auditoría: usuarios activos solo crean; Admin lee; update/delete prohibidos.
+    match /audit/{id} {
+      allow create: if active();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Documento de prueba/conexión del ERP
+    match /erpSystem/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
