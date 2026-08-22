@@ -365,12 +365,13 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 .loginGateCard h1{margin:0;font-size:28px}.loginGateSub{color:#718198;margin-top:4px}.loginGateForm{display:grid;gap:14px;margin-top:22px}.loginGateForm label{font-size:12px;font-weight:900;color:#69788e;text-transform:uppercase}
 .loginGateForm input{width:100%;box-sizing:border-box;padding:14px 15px;border:1px solid #d8e2ee;border-radius:12px;font-size:16px}.loginGateStatus{margin-top:15px;padding:11px 12px;border-radius:11px;background:#f5f8fc;color:#607089;font-size:13px}.loginGateStatus.error{background:#fff1f2;color:#be123c}.loginGateStatus.ok{background:#ecfdf5;color:#047857}
 
-#sessionControl{position:fixed;right:18px;bottom:18px;z-index:90000;display:none;align-items:center;gap:10px;background:#fff;border:1px solid #dce6f2;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px rgba(31,41,55,.14)}
+#sessionControl{position:static;z-index:auto;display:none;flex-direction:column;align-items:stretch;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;box-shadow:none}
+#sessionControl .btn{width:100%;white-space:normal;padding:8px 9px;font-size:10px}
 #sessionControl.active{display:flex}
-#sessionControl .who{max-width:260px;line-height:1.2}
+#sessionControl .who{max-width:100%;min-width:0;line-height:1.25}
 #sessionControl .who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #sessionControl .who small{color:#718198}
-#sessionControl button{white-space:nowrap}
+#sessionControl button{white-space:normal}
 
 .auditKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .auditKpi{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px}
@@ -418,11 +419,6 @@ body[data-readonly='true'] .writeOnly{display:none!important}
  </div>
 </div>
 
-<div id="sessionControl">
- <div class="who"><b id="sessionControlUser">Usuario</b><small id="sessionControlRole">Sesión activa</small></div>
- <button class="btn" onclick="changeERPUser()">⇄ Cambiar usuario / Cerrar sesión</button>
-</div>
-
 <div id="loginGate">
  <div class="loginGateCard">
   <div class="loginGateBrand"><div class="loginGateLogo">PSI</div><div><h1>Acceso al ERP Compras</h1><div class="loginGateSub">Enterprise V4 · Inicio de sesión seguro</div></div></div>
@@ -440,12 +436,16 @@ body[data-readonly='true'] .writeOnly{display:none!important}
     <div class="brand"><div class="logo">PSI</div><div><b>ERP Compras</b><small>Enterprise V4 · Modular PWA</small></div></div>
     <div class="navLabel">Navegación</div>
     <nav class="nav" id="nav"></nav>
+    <div id="sessionControl">
+      <div class="who"><b id="sessionControlUser">Usuario</b><small id="sessionControlRole">Sesión activa</small></div>
+      <button class="btn" onclick="changeERPUser()">⇄ Cambiar usuario / Cerrar sesión</button>
+    </div>
     <div class="footer"><b>V4.0.0-C13.0</b> · Administración ERP<br><span style="color:var(--ok)">✓ C0–C7 Núcleo operativo</span><br><span style="color:var(--accent)">✓ C8 Servicios Técnicos aprobado<br>✓ C9 Facturas aprobado<br>✓ C10 Cuentas por Pagar aprobado<br>C11 Evaluación Proveedores en validación</span></div>
   </aside>
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue">BUILD C14.1</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue">BUILD C14.2</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -691,7 +691,7 @@ function go(page){
  else if(page==='evaluacionProveedores'){$('pageTitle').textContent='Evaluación de Proveedores';$('pageSub').textContent='C11.0 · Evaluación anual y desempeño semestral conectados a las compras reales.';$('pageIcon').textContent='★';renderSupplierEvaluations()}
  else if(page==='alertas'){$('pageTitle').textContent='Centro de Alertas';$('pageSub').textContent='C12.1 · Alertas integradas y consistencia operativa del núcleo C0 → C12.';$('pageIcon').textContent='!';renderAlerts()}
  else if(page==='dashboardCorporativo'){$('pageTitle').textContent='Dashboard Corporativo';$('pageSub').textContent='C12.1 · Cierre e integración del núcleo operativo C0 → C12.';$('pageIcon').textContent='◫';renderCorporateDashboard()}
- else{$('pageTitle').textContent='Administración ERP';$('pageSub').textContent='C14.1 · Producción estable GitHub + Netlify.';$('pageIcon').textContent='⚙';renderAdministration()} applyRoleUi()
+ else{$('pageTitle').textContent='Administración ERP';$('pageSub').textContent='C14.2 · Sesión fija en barra lateral · base C14.1 intacta.';$('pageIcon').textContent='⚙';renderAdministration()} applyRoleUi()
 }
 function renderAll(){
  refreshSessionControl();buildNav();renderDashboard();renderProviders();renderProducts();renderRequests();renderQuotations();renderOrders();renderReceptions();renderInventory();renderTechnicalServices();renderInvoices();renderPayables();renderSupplierEvaluations();renderAlerts();renderCorporateDashboard();renderAdministration();applyRoleUi()}
