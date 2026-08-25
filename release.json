@@ -1,18 +1,18 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.6",
-  "build": "C14.6",
+  "version": "V4.0.0-C14.7",
+  "build": "C14.7",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Base C14.5 conservada",
-    "Nueva bandeja superior del flujo de Solicitudes por 3 etapas: Preparación, Por aprobar y Aprobadas",
-    "Contador visible de solicitudes que requieren atención (Borrador + Pendiente de aprobación)",
-    "Cada etapa funciona como acceso rápido y filtra el consolidado",
-    "Acción directa Continuar para borradores y Revisar / Aprobar para pendientes",
-    "Cotizaciones con contacto específico y firma digital PKCS#12 se conservan sin cambios"
+    "Base C14.6 conservada",
+    "Corrección del botón Continuar en solicitudes en Preparación",
+    "Flujo funcional Borrador → Pendiente de aprobación → Aprobada/Rechazada",
+    "Revisar / Aprobar abre directamente la etapa de aprobación y registra la decisión",
+    "Las solicitudes aprobadas quedan bloqueadas para edición y muestran Ver aprobación",
+    "Auditoría para envío a aprobación, aprobación y rechazo"
   ]
 }
