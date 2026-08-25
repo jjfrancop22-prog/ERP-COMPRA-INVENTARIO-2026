@@ -1,18 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.7",
-  "build": "C14.7",
+  "version": "V4.0.0-C14.7.1",
+  "build": "C14.7.1",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Base C14.6 conservada",
-    "Corrección del botón Continuar en solicitudes en Preparación",
-    "Flujo funcional Borrador → Pendiente de aprobación → Aprobada/Rechazada",
-    "Revisar / Aprobar abre directamente la etapa de aprobación y registra la decisión",
-    "Las solicitudes aprobadas quedan bloqueadas para edición y muestran Ver aprobación",
-    "Auditoría para envío a aprobación, aprobación y rechazo"
+    "Base C14.7 conservada",
+    "IndexedDB abre la versión existente sin intentar downgrade",
+    "Si faltan almacenes, actualiza de forma segura a version+1 sin borrar datos",
+    "No requiere limpiar datos del navegador ni eliminar la base local",
+    "Flujo Solicitudes C14.7 conservado"
   ]
 }
