@@ -1,16 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.2",
-  "build": "C14.2",
+  "version": "V4.0.0-C14.5",
+  "build": "C14.5",
   "channel": "stable-netlify-production",
-  "releasedAt": "2026-08-21",
+  "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Base C14.0-R2 validada",
-    "Firebase SDK unificado 10.12.5",
-    "Bootstrap Firebase para dominio nuevo",
-    "Deploy estático GitHub + Netlify"
+    "Base C14.4 conservada",
+    "Selector de contacto/asesor por proveedor en Cotizaciones",
+    "La cotización guarda contactoId y datos del asesor seleccionado",
+    "La Orden de Compra hereda el contacto específico de la cotización",
+    "Firma Digital PKCS#12 Profesional C14.3 conservada sin cambios"
   ]
 }
