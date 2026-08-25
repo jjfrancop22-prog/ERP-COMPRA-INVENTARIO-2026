@@ -1,16 +1,6 @@
-ERP COMPRAS ENTERPRISE V4
-Versión actual: V4.0.0-C14.7.1 — Base Local Startup Fix
+ERP COMPRAS V4.0.0-C14.7.2 — INDEXEDDB RECOVERY FIX
 
-Paquete limpio de producción.
-Incluye todas las mejoras acumuladas hasta C14.7.1 sin conservar archivos README de versiones intermedias.
-
-Archivos principales:
-- index.html
-- manifest.webmanifest
-- service-worker.js
-- netlify.toml
-- firestore.rules
-- release.json
-- GUIA_PRODUCCION_GITHUB_NETLIFY.txt
-
-Nota: este paquete no elimina ni reinicia los datos existentes de IndexedDB/Firebase.
+Paquete limpio. Un solo README vigente.
+No borra ni reinicia IndexedDB. Detecta la versión existente y migra únicamente almacenes faltantes.
+Si otra pestaña mantiene la base abierta, espera antes de informar bloqueo.
+El login muestra la causa técnica real si el arranque local falla.

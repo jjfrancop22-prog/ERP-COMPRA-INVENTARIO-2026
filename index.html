@@ -576,13 +576,32 @@ function nextCode(){let max=0;for(const p of providers){const m=String(p.codigo|
 const DB_NAME='ERP_COMPRAS_V4';const DB_VERSION='AUTO';let ACTIVE_DB_VERSION='—';let dbPromise;
 const REQUIRED_DB_STORES={providers:'id',products:'id',requests:'id',quotations:'id',orders:'id',receptions:'id',inventory:'id',technicalServices:'id',invoices:'id',payables:'id',payments:'id',supplierEvaluations:'id',audit:'id',meta:'key',syncOutbox:'id',syncMeta:'key',syncConflicts:'id',syncInbox:'id',syncTombstones:'id',users:'id'};
 function createMissingStores(d){for(const [name,keyPath] of Object.entries(REQUIRED_DB_STORES)){if(!d.objectStoreNames.contains(name))d.createObjectStore(name,{keyPath})}}
-function openIndexedDB(version){return new Promise((resolve,reject)=>{const req=version?indexedDB.open(DB_NAME,version):indexedDB.open(DB_NAME);req.onupgradeneeded=e=>createMissingStores(e.target.result);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(new Error('IndexedDB bloqueada por otra pestaña'))})}
+function openIndexedDB(version){return new Promise((resolve,reject)=>{
+ if(!('indexedDB' in window))return reject(new Error('IndexedDB no está disponible en este navegador'));
+ let settled=false;const req=(Number.isInteger(version)&&version>0)?indexedDB.open(DB_NAME,version):indexedDB.open(DB_NAME);
+ req.onupgradeneeded=e=>{try{createMissingStores(e.target.result)}catch(err){console.error('IDB upgrade',err);throw err}};
+ req.onsuccess=()=>{if(settled){try{req.result.close()}catch(_){ }return}settled=true;resolve(req.result)};
+ req.onerror=()=>{if(settled)return;settled=true;reject(req.error||new Error('Error desconocido al abrir IndexedDB'))};
+ req.onblocked=()=>{console.warn('IndexedDB esperando cierre de una conexión anterior; no se borrarán datos.');};
+ setTimeout(()=>{if(!settled){settled=true;reject(new Error('IndexedDB bloqueada por otra pestaña o una versión anterior del ERP. Cierre otras pestañas del ERP y vuelva a intentar.'))}},12000);
+})}
+async function detectedDBVersion(){
+ try{if(indexedDB.databases){const list=await indexedDB.databases();const hit=list.find(x=>x.name===DB_NAME);if(hit&&Number(hit.version)>0)return Number(hit.version)}}catch(e){console.warn('No se pudo consultar indexedDB.databases()',e)}
+ return null;
+}
 async function openCompatibleDB(){
- let d=await openIndexedDB();
- const missing=Object.keys(REQUIRED_DB_STORES).filter(name=>!d.objectStoreNames.contains(name));
- if(missing.length){const nextVersion=d.version+1;d.close();d=await openIndexedDB(nextVersion)}
+ const known=await detectedDBVersion();
+ let d=await openIndexedDB(known||undefined);
+ let missing=Object.keys(REQUIRED_DB_STORES).filter(name=>!d.objectStoreNames.contains(name));
+ if(missing.length){
+   const nextVersion=Math.max(Number(d.version)||1,known||1)+1;
+   d.close();
+   d=await openIndexedDB(nextVersion);
+   missing=Object.keys(REQUIRED_DB_STORES).filter(name=>!d.objectStoreNames.contains(name));
+   if(missing.length){d.close();throw new Error('Estructura local incompleta: '+missing.join(', '))}
+ }
  ACTIVE_DB_VERSION=d.version;
- d.onversionchange=()=>{d.close();dbPromise=null};
+ d.onversionchange=()=>{try{d.close()}catch(_){ }dbPromise=null};
  return d;
 }
 function db(){if(!dbPromise)dbPromise=openCompatibleDB().catch(err=>{dbPromise=null;throw err});return dbPromise}
@@ -1951,7 +1970,7 @@ if('serviceWorker' in navigator)addEventListener('load',async()=>{
 });let deferred;const installBtn=$('installBtn');addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;installBtn.style.display='block'});installBtn.onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;installBtn.style.display='none'};
 const themeBtn=$('themeBtn');function applyTheme(theme){document.body.classList.toggle('dark',theme==='dark');themeBtn.textContent=theme==='dark'?'☀':'☾';themeBtn.title=theme==='dark'?'Cambiar a tema claro':'Cambiar a tema oscuro';$('themeMeta').setAttribute('content',theme==='dark'?'#07111f':'#f4f7fb');localStorage.setItem('ERP_COMPRAS_V4_THEME',theme)}applyTheme(localStorage.getItem('ERP_COMPRAS_V4_THEME')||'light');themeBtn.onclick=()=>applyTheme(document.body.classList.contains('dark')?'light':'dark');
 sessionStorage.removeItem('ERP_PWA_RELOADING');
-loadData().then(async()=>{firebaseRuntime.pending=(await firebaseOutbox()).length;currentPage='administracion';renderAll();await initAuthState();scheduleFirebaseSync();ensureFirebaseAutoLoop();/* C13.7.1 Login Gate */}).catch(e=>{console.error(e);showLoginGate('No se pudo iniciar la base local.',true);toast('No se pudo iniciar IndexedDB')});
+loadData().then(async()=>{firebaseRuntime.pending=(await firebaseOutbox()).length;currentPage='administracion';renderAll();await initAuthState();scheduleFirebaseSync();ensureFirebaseAutoLoop();/* C13.7.1 Login Gate */}).catch(e=>{console.error(e);showLoginGate('No se pudo iniciar la base local. '+(e?.message||e?.name||'Error IndexedDB'),true);toast('Error IndexedDB: '+(e?.name||'inicio'))});
 
 window.activateProviderTab=activateProviderTab;
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('loginGate')&&!$('loginGate').classList.contains('hidden')&&document.activeElement?.id==='gate_password')gateLogin()});
