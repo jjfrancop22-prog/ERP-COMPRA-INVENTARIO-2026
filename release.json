@@ -1,18 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.7.2",
-  "build": "C14.7.2",
+  "version": "V4.0.0-C14.5",
+  "build": "C14.5",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Recuperación robusta de IndexedDB sin borrar datos",
-    "Detecta versión existente antes de abrir",
-    "Espera conexiones bloqueantes en lugar de fallar inmediatamente",
-    "Migra almacenes faltantes con version+1",
-    "Muestra causa técnica si IndexedDB vuelve a fallar",
-    "Flujo de Solicitudes C14.7 y mejoras posteriores conservadas"
+    "Base C14.4 conservada",
+    "Selector de contacto/asesor por proveedor en Cotizaciones",
+    "La cotización guarda contactoId y datos del asesor seleccionado",
+    "La Orden de Compra hereda el contacto específico de la cotización",
+    "Firma Digital PKCS#12 Profesional C14.3 conservada sin cambios"
   ]
 }
