@@ -166,3 +166,12 @@ C14.5.2 — COTIZACIONES: HERENCIA DE PROVEEDOR + PRECIO VIGENTE
 - Cada producto busca la opción comercial vigente del proveedor seleccionado.
 - El precio vigente se propone automáticamente, pero el precio ofertado sigue editable.
 - Sin cambios en Firebase, roles, inventario, OC, facturas ni demás módulos.
+
+C14.5.3 — EDICIÓN CONTROLADA + PRECIOS HISTÓRICOS
+- Solicitudes no Borrador: modificación mediante contraseña CALIDAD + motivo obligatorio.
+- Sin documentos posteriores: edición completa; vuelve a Pendiente de aprobación.
+- Con Cotización/OC/Recepción: se protege estructura e ítems; solo observaciones/comentarios.
+- Auditoría conserva snapshot antes/después, motivo, usuario y fecha.
+- Cotización seleccionada guarda snapshot del precio adjudicado.
+- Al emitir OC el precio de cada ítem queda congelado históricamente.
+- Cambios futuros del Maestro de Productos aplican solo a operaciones nuevas.

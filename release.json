@@ -1,16 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.2",
-  "build": "C14.5.2",
+  "version": "V4.0.0-C14.5.3",
+  "build": "C14.5.3",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Cotizaciones heredan proveedor de Solicitud cuando es único",
-    "Asesor automático si es único; selección manual si existen varios",
-    "Precio sugerido toma opción comercial vigente del proveedor",
-    "Precio ofertado permanece editable"
+    "Edición controlada de Solicitudes con contraseña CALIDAD y motivo obligatorio",
+    "Edición completa solo antes de Cotizaciones/OC; después protege estructura histórica",
+    "Cambios estructurales requieren nueva aprobación",
+    "Snapshot de precio al seleccionar Cotización",
+    "Precio de OC congelado definitivamente al emitir"
   ]
 }
