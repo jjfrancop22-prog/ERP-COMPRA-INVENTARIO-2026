@@ -158,3 +158,11 @@ C14.1 — PRODUCCIÓN ESTABLE GITHUB + NETLIFY
 - Incluye bootstrap de configuración Firebase para dominios nuevos.
 - Repositorio GitHub sirve como fuente del código.
 - Netlify publica la PWA.
+
+C14.5.2 — COTIZACIONES: HERENCIA DE PROVEEDOR + PRECIO VIGENTE
+- Proveedor heredado desde la Solicitud cuando existe uno solo.
+- Si una Solicitud contiene varios proveedores, el selector se restringe a ellos.
+- Un único asesor se selecciona automáticamente; con varios se exige selección.
+- Cada producto busca la opción comercial vigente del proveedor seleccionado.
+- El precio vigente se propone automáticamente, pero el precio ofertado sigue editable.
+- Sin cambios en Firebase, roles, inventario, OC, facturas ni demás módulos.

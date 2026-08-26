@@ -1,17 +1,16 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5",
-  "build": "C14.5",
+  "version": "V4.0.0-C14.5.2",
+  "build": "C14.5.2",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-24",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Base C14.4 conservada",
-    "Selector de contacto/asesor por proveedor en Cotizaciones",
-    "La cotización guarda contactoId y datos del asesor seleccionado",
-    "La Orden de Compra hereda el contacto específico de la cotización",
-    "Firma Digital PKCS#12 Profesional C14.3 conservada sin cambios"
+    "Cotizaciones heredan proveedor de Solicitud cuando es único",
+    "Asesor automático si es único; selección manual si existen varios",
+    "Precio sugerido toma opción comercial vigente del proveedor",
+    "Precio ofertado permanece editable"
   ]
 }
