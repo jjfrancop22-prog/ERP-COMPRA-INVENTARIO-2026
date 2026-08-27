@@ -1,7 +1,7 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.1",
-  "build": "C14.5.4.1",
+  "version": "V4.0.0-C14.5.4.3",
+  "build": "C14.5.4.3",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-26",
   "firebaseProjectId": "psi-kardex",
@@ -9,7 +9,7 @@
   "sourceControl": "github",
   "notes": [
     "Base estable C14.5.3 conservada",
-    "Edición controlada de secuencia de Orden de Compra con contraseña CALIDADA",
+    "Edición controlada de secuencia de Orden de Compra con contraseña CALIDAD",
     "Continuidad automática del correlativo después de una modificación autorizada",
     "Edición excepcional de ítems de OC con control y auditoría",
     "Precios históricos congelados y flujo Solicitud → Cotización → OC preservado"

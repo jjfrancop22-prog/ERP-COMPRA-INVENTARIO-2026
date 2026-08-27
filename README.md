@@ -1,18 +1,11 @@
-# ERP Compras Enterprise V4 — C14.5.4.1
+# ERP Compras Enterprise V4 — C14.5.4.3
 
-Paquete limpio de producción para GitHub + Netlify.
+Build limpio de producción para GitHub/Netlify.
 
-## Publicar
-1. Suba **el contenido de esta carpeta** a la raíz del repositorio GitHub.
-2. Netlify puede publicar directamente desde la raíz (`publish = "."`).
-3. No suba respaldos `index.before_*` ni README de versiones anteriores.
-
-## Archivos de producción
-- `index.html` — aplicación
-- `assets/` — recursos
-- `icons/` — iconos PWA
-- `manifest.webmanifest` — instalación PWA
-- `service-worker.js` — caché/actualización PWA
-- `netlify.toml` — configuración Netlify
-- `firestore.rules` — reglas Firestore de referencia/despliegue
-- `release.json` — identificación de la versión publicada
+## Cambio puntual
+- Corrección controlada de cantidades en cotizaciones ya registradas o seleccionadas.
+- Requiere contraseña de Calidad `CALIDAD` y motivo obligatorio.
+- Conserva el precio unitario congelado.
+- No permite reducir la cantidad por debajo de lo ya ordenado o dado de baja.
+- La generación de OC parcial toma automáticamente la cantidad corregida y recalcula el pendiente.
+- Auditoría de cantidad anterior → nueva cantidad.
