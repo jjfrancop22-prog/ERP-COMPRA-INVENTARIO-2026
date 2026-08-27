@@ -1,17 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.6",
-  "build": "C14.5.4.6",
+  "version": "V4.0.0-C14.5.4.5",
+  "build": "C14.5.4.5",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-26",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Fecha OC heredada se normaliza a YYYY-MM-DD para evitar campo vacío",
-    "OC nueva toma fecha de selección/cotización y la guarda como fecha válida",
-    "Recepción OC propone por defecto la fecha de aprobación/autorización final de la OC",
-    "Fecha de recepción permanece editable",
-    "Sin cambios en precios, Firebase, roles, secuencias ni módulos restantes"
+    "Corrección controlada de cantidad y precio unitario en Cotizaciones",
+    "Contraseña CALIDAD y motivo obligatorio",
+    "Recalcula total de Cotización con el valor corregido",
+    "Cotizaciones seleccionadas actualizan su snapshot para futuras OC",
+    "OC existentes, especialmente Emitidas, conservan precio histórico sin cambios"
   ]
 }
