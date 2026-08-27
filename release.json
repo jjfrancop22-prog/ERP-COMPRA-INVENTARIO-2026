@@ -1,7 +1,7 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4",
-  "build": "C14.5.4",
+  "version": "V4.0.0-C14.5.4.1",
+  "build": "C14.5.4.1",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-26",
   "firebaseProjectId": "psi-kardex",
