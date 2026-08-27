@@ -1,17 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.3",
-  "build": "C14.5.3",
+  "version": "V4.0.0-C14.5.4",
+  "build": "C14.5.4",
   "channel": "stable-netlify-production",
-  "releasedAt": "2026-08-24",
+  "releasedAt": "2026-08-26",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Edición controlada de Solicitudes con contraseña CALIDAD y motivo obligatorio",
-    "Edición completa solo antes de Cotizaciones/OC; después protege estructura histórica",
-    "Cambios estructurales requieren nueva aprobación",
-    "Snapshot de precio al seleccionar Cotización",
-    "Precio de OC congelado definitivamente al emitir"
+    "Base estable C14.5.3 conservada",
+    "Edición controlada de secuencia de Orden de Compra con contraseña CALIDADA",
+    "Continuidad automática del correlativo después de una modificación autorizada",
+    "Edición excepcional de ítems de OC con control y auditoría",
+    "Precios históricos congelados y flujo Solicitud → Cotización → OC preservado"
   ]
 }
