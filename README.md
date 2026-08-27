@@ -1,11 +1,7 @@
-# ERP Compras Enterprise V4 — C14.5.4.3
+# ERP COMPRAS V4.0.0-C14.5.4.4
 
-Build limpio de producción para GitHub/Netlify.
+Producción GitHub / Netlify.
 
-## Cambio puntual
-- Corrección controlada de cantidades en cotizaciones ya registradas o seleccionadas.
-- Requiere contraseña de Calidad `CALIDAD` y motivo obligatorio.
-- Conserva el precio unitario congelado.
-- No permite reducir la cantidad por debajo de lo ya ordenado o dado de baja.
-- La generación de OC parcial toma automáticamente la cantidad corregida y recalcula el pendiente.
-- Auditoría de cantidad anterior → nueva cantidad.
+Corrección puntual: el botón **Corregir cantidad** de Cotizaciones vuelve a abrir el formulario de edición controlada. Se corrigió una referencia JavaScript inexistente que detenía la acción del botón.
+
+Clave de autorizaciones de Calidad: `CALIDAD`.
