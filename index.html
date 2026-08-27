@@ -446,7 +446,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue">BUILD C14.5.4.4</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue">BUILD C14.5.4.5</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -482,7 +482,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.4';
+const VERSION='V4.0.0-C14.5.4.5';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -692,7 +692,7 @@ function go(page){
  else if(page==='evaluacionProveedores'){$('pageTitle').textContent='Evaluación de Proveedores';$('pageSub').textContent='C11.0 · Evaluación anual y desempeño semestral conectados a las compras reales.';$('pageIcon').textContent='★';renderSupplierEvaluations()}
  else if(page==='alertas'){$('pageTitle').textContent='Centro de Alertas';$('pageSub').textContent='C12.1 · Alertas integradas y consistencia operativa del núcleo C0 → C12.';$('pageIcon').textContent='!';renderAlerts()}
  else if(page==='dashboardCorporativo'){$('pageTitle').textContent='Dashboard Corporativo';$('pageSub').textContent='C12.1 · Cierre e integración del núcleo operativo C0 → C12.';$('pageIcon').textContent='◫';renderCorporateDashboard()}
- else{$('pageTitle').textContent='Administración ERP';$('pageSub').textContent='C14.5.4.4 · Corrección controlada de cantidades en cotizaciones seleccionadas.';$('pageIcon').textContent='⚙';renderAdministration()} applyRoleUi()
+ else{$('pageTitle').textContent='Administración ERP';$('pageSub').textContent='C14.5.4.5 · Corrección controlada de cantidad y precio en cotizaciones.';$('pageIcon').textContent='⚙';renderAdministration()} applyRoleUi()
 }
 function renderAll(){
  refreshSessionControl();buildNav();renderDashboard();renderProviders();renderProducts();renderRequests();renderQuotations();renderOrders();renderReceptions();renderInventory();renderTechnicalServices();renderInvoices();renderPayables();renderSupplierEvaluations();renderAlerts();renderCorporateDashboard();renderAdministration();applyRoleUi()}
@@ -1284,10 +1284,98 @@ function quoteComparisonHTML(requestId,current=''){const rows=quotations.filter(
 async function saveQuote(id='',received=false){if(!requireWrite('cotizaciones','crear o modificar'))return;if(savingQuote)return;const solicitudId=$('qt_request')?.value||'',proveedorId=$('qt_provider')?.value||'',fecha=$('qt_fecha')?.value||'',r=requests.find(x=>x.id===solicitudId),p=providers.find(x=>x.id===proveedorId),contactoId=$('qt_contact')?.value||'',contacto=providerContacts(p||{}).find(c=>c.id===contactoId)||null;if(!r||r.estado!=='Aprobada'){toast('Seleccione una Solicitud aprobada');return}if(!p||!fecha){toast('La Solicitud debe tener proveedor asociado y fecha de cotización');return}if(providerContacts(p).length&&!contacto){toast('Seleccione el contacto / asesor que atendió la cotización');return}const existing=quotations.find(x=>x.id===id)||{};const duplicate=quotations.find(x=>x.id!==id&&x.solicitudId===solicitudId&&x.proveedorId===proveedorId&&x.estado!=='Descartada');if(duplicate&&!confirm('Ya existe una cotización activa de este proveedor para la solicitud. ¿Guardar otra versión?'))return;const items=readQuoteItems({...existing,solicitudId});if(!items.length){toast('La solicitud no contiene ítems');return}if(received&&items.some(i=>Number(i.precioUnitario)<0)){toast('Revise los precios ofertados');return}savingQuote=true;try{const obj={...existing,id:existing.id||uid('cot'),codigo:existing.codigo||$('qt_code').value||nextQuoteCode(),solicitudId,solicitudCodigo:r.codigo,area:r.area,proveedorId,proveedorNombre:p.razonSocial,contactoId:contacto?.id||'',contactoNombre:contacto?.nombre||'',contactoCargo:contacto?.cargo||'',contactoArea:contacto?.categoria||'',contactoCorreo:contacto?.correo||'',contactoWhatsapp:contacto?.whatsapp||'',referenciaProveedor:$('qt_ref').value.trim(),fechaCotizacion:fecha,validaHasta:$('qt_valida').value,moneda:$('qt_moneda').value||'USD',condicionPago:$('qt_pago').value.trim(),tiempoEntrega:Number($('qt_entrega').value||0),garantia:$('qt_garantia').value.trim(),observaciones:$('qt_obs').value.trim(),ivaPorcentaje:Number($('qt_iva').value||0),otrosCostos:Number($('qt_otros').value||0),items,estado:received?'Recibida':(existing.estado||'Borrador'),createdAt:existing.createdAt||nowISO(),updatedAt:nowISO(),estructura:'ERP_COMPRAS_V4_COTIZACIONES_C4',schemaVersion:1};if(id)quotations=quotations.map(x=>x.id===id?obj:x);else quotations.push(obj);await put('quotations',obj);await logAudit(id?'EDITAR_COTIZACION':'CREAR_COTIZACION',obj.codigo,obj.id,'Cotizaciones');closeModal();renderAll();go('cotizaciones');toast(received?'Cotización marcada como recibida':'Cotización guardada')}finally{savingQuote=false}}
 async function selectQuote(id){const q=quotations.find(x=>x.id===id);if(!q||q.estado!=='Recibida')return;if(!confirm(`¿Seleccionar ${q.codigo} como oferta adjudicada? Las demás ofertas de esta solicitud quedarán descartadas.`))return;const stamp=nowISO();for(const x of quotations.filter(x=>x.solicitudId===q.solicitudId)){if(x.id===id){x.estado='Seleccionada';x.fechaSeleccion=stamp;x.precioSnapshotSeleccion=true;x.items=(x.items||[]).map(i=>({...i,precioSeleccionadoSnapshot:Number(i.precioUnitario||0),precioSeleccionadoFecha:stamp,precioSeleccionadoMoneda:x.moneda||'USD'}))}else if(x.estado==='Recibida')x.estado='Descartada';x.updatedAt=stamp;await put('quotations',x)}await logAudit('SELECCIONAR_OFERTA',`${q.codigo} · precios congelados en selección`,q.id,'Cotizaciones');renderAll();go('cotizaciones');toast('Oferta seleccionada · precios fijados para la futura OC')}
 async function deleteQuote(id){if(!requireWrite('cotizaciones','eliminar cotizaciones'))return;const q=quotations.find(x=>x.id===id);if(!q||q.estado!=='Borrador'){toast('Solo se elimina una cotización en Borrador');return}if(!confirm(`¿Eliminar ${q.codigo}?`))return;quotations=quotations.filter(x=>x.id!==id);await del('quotations',id);renderAll();go('cotizaciones')}
-function quoteViewItemsHTML(q){const rows=quoteItems(q);return`<div class="tableWrap" style="margin-top:14px"><table><thead><tr><th>Producto</th><th>Cantidad cotizada</th><th>Unidad</th><th>V. unitario</th><th>Total</th></tr></thead><tbody>${rows.map(i=>`<tr><td>${esc(i.productoNombre||i.descripcion||'')}</td><td><b>${esc(i.cantidad||0)}</b></td><td>${esc(i.unidad||'Unidad')}</td><td>${Number(i.precioSeleccionadoSnapshot??i.precioUnitario??0).toFixed(2)}</td><td>${(Number(i.cantidad||0)*Number(i.precioSeleccionadoSnapshot??i.precioUnitario??0)).toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin ítems</td></tr>'}</tbody></table></div>`}
-function viewQuote(id){const q=quotations.find(x=>x.id===id);if(!q)return;openModal('Cotización '+q.codigo,`<div class="formGrid"><div class="fg"><label>Solicitud</label><input readonly value="${esc(q.solicitudCodigo||quoteRequest(q)?.codigo||'')}"></div><div class="fg"><label>Proveedor</label><input readonly value="${esc(q.proveedorNombre||quoteProvider(q)?.razonSocial||'')}"></div><div class="fg"><label>Contacto / asesor</label><input readonly value="${esc(q.contactoNombre||providerContacts(quoteProvider(q)||{}).find(c=>c.id===q.contactoId)?.nombre||'—')}"></div><div class="fg"><label>Estado</label><div>${quoteStatusBadge(q.estado)}</div></div><div class="fg"><label>Total</label><input readonly value="${esc(q.moneda||'USD')} ${quoteGrand(q).toFixed(2)}"></div></div><div class="note" style="margin-top:14px"><b>Ítems de la cotización.</b> Si una cantidad quedó registrada incorrectamente, Calidad puede corregirla de forma excepcional sin alterar el precio congelado.</div>${quoteViewItemsHTML(q)}${quoteComparisonHTML(q.solicitudId,q.id)}`,`<button class="btn" onclick="closeModal()">Cerrar</button><button class="btn blue" onclick="openQuoteQuantityCorrection('${id}')">✏️ Corregir cantidad</button>`)}
-function openQuoteQuantityCorrection(id){const q=quotations.find(x=>x.id===id);if(!q)return;const rows=quoteItems(q);if(!rows.length){toast('La cotización no contiene ítems');return}const body=`<div class="note"><b>🔐 Corrección excepcional de cantidad cotizada.</b> Use esta opción cuando la cantidad fue digitada incorrectamente. No cambia el precio unitario congelado ni elimina OC ya generadas. La nueva cantidad nunca puede ser menor que lo ya ordenado o dado de baja.</div><div class="tableWrap" style="margin-top:14px"><table><thead><tr><th>Producto</th><th>Cantidad actual</th><th>Ya resuelto</th><th>Nueva cantidad</th><th>Unidad</th></tr></thead><tbody>${rows.map((i,idx)=>{const resolved=orderQtyForQuoteItem(q.id,idx)+Number(quoteItemLowRecord(q,idx)?.cantidadBaja||0);return`<tr><td>${esc(i.productoNombre||i.descripcion||'')}</td><td>${esc(i.cantidad||0)}</td><td>${resolved}</td><td><input class="qtc_qty" data-index="${idx}" type="number" min="${Math.max(resolved,0.000001)}" step="any" value="${esc(i.cantidad||0)}"></td><td>${esc(i.unidad||'Unidad')}</td></tr>`}).join('')}</tbody></table></div><div class="formGrid" style="margin-top:14px"><div class="fg full"><label>Motivo de la corrección *</label><textarea id="qtc_reason" placeholder="Ej.: la cantidad correcta era 10 y se registró 1 por error de digitación."></textarea></div><div class="fg full"><label>Contraseña de Calidad *</label><input id="qtc_pass" type="password" autocomplete="off"></div></div>`;openModal('✏️ Corregir cantidad · '+q.codigo,body,`<button class="btn" onclick="viewQuote('${id}')">Cancelar</button><button class="btn primary" onclick="confirmQuoteQuantityCorrection('${id}')">✓ Guardar corrección</button>`)}
-async function confirmQuoteQuantityCorrection(id){const q=quotations.find(x=>x.id===id);if(!q)return;const pass=$('qtc_pass')?.value||'',reason=$('qtc_reason')?.value.trim()||'';if(pass!==QUALITY_ORDER_EDIT_PASSWORD){toast('Contraseña de Calidad incorrecta');return}if(!reason){toast('Ingrese el motivo de la corrección');return}const rows=quoteItems(q),changes=[];for(let idx=0;idx<rows.length;idx++){const el=document.querySelector('.qtc_qty[data-index="'+idx+'"]'),nuevo=Number(el?.value||0),actual=Number(rows[idx].cantidad||0),resolved=orderQtyForQuoteItem(q.id,idx)+Number(quoteItemLowRecord(q,idx)?.cantidadBaja||0);if(!Number.isFinite(nuevo)||nuevo<=0){toast('Todas las cantidades deben ser mayores a cero');return}if(nuevo+1e-9<resolved){toast('La nueva cantidad no puede ser menor que lo ya ordenado o dado de baja');return}if(Math.abs(nuevo-actual)>1e-9)changes.push({idx,actual,nuevo,producto:rows[idx].productoNombre||rows[idx].descripcion||'Producto'})}if(!changes.length){toast('No existe ningún cambio de cantidad');return}q.items=rows.map((i,idx)=>{const c=changes.find(x=>x.idx===idx);return c?{...i,cantidad:c.nuevo}:i});q.correccionesCantidad=Array.isArray(q.correccionesCantidad)?q.correccionesCantidad:[];q.correccionesCantidad.push({fecha:nowISO(),motivo:reason,usuario:'Autorización de Calidad',cambios:changes});q.updatedAt=nowISO();q.estadoOC=quoteFullyResolvedForOrder(q)?'Cerrada':'Pendiente parcial';await put('quotations',q);await logAudit('CORREGIR_CANTIDAD_COTIZACION',`${q.codigo} · ${changes.map(c=>c.producto+': '+c.actual+' → '+c.nuevo).join(' | ')} · ${reason}`,q.id,'Cotizaciones');closeModal();renderAll();go('ordenes');toast('Cantidad corregida. La próxima OC tomará el nuevo pendiente de la cotización')}
+function quoteViewItemsHTML(q){
+ const rows=quoteItems(q);
+ return`<div class="tableWrap" style="margin-top:14px"><table><thead><tr><th>Producto</th><th>Cantidad cotizada</th><th>Unidad</th><th>V. unitario</th><th>Total</th></tr></thead><tbody>${rows.map(i=>{const pu=Number(i.precioSeleccionadoSnapshot??i.precioUnitario??0);return`<tr><td>${esc(i.productoNombre||i.descripcion||'')}</td><td><b>${esc(i.cantidad||0)}</b></td><td>${esc(i.unidad||'Unidad')}</td><td>${pu.toFixed(2)}</td><td>${(Number(i.cantidad||0)*pu).toFixed(2)}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Sin ítems</td></tr>'}</tbody></table></div>`
+}
+function viewQuote(id){
+ const q=quotations.find(x=>x.id===id);if(!q)return;
+ const linkedOrders=orders.filter(o=>o.cotizacionId===q.id&&o.estado!=='Anulada');
+ const emitted=linkedOrders.filter(o=>o.estado==='Emitida').length;
+ const traceNote=linkedOrders.length
+   ?`<div class="note" style="margin-top:10px"><b>Protección histórica:</b> esta cotización ya tiene ${linkedOrders.length} OC relacionada(s)${emitted?` (${emitted} emitida(s))`:''}. Una corrección de precio o cantidad <b>no modifica las OC existentes</b>; solo aplica al saldo o a futuras OC generadas desde esta cotización.</div>`
+   :'';
+ openModal('Cotización '+q.codigo,
+ `<div class="formGrid"><div class="fg"><label>Solicitud</label><input readonly value="${esc(q.solicitudCodigo||quoteRequest(q)?.codigo||'')}"></div><div class="fg"><label>Proveedor</label><input readonly value="${esc(q.proveedorNombre||quoteProvider(q)?.razonSocial||'')}"></div><div class="fg"><label>Contacto / asesor</label><input readonly value="${esc(q.contactoNombre||providerContacts(quoteProvider(q)||{}).find(c=>c.id===q.contactoId)?.nombre||'—')}"></div><div class="fg"><label>Estado</label><div>${quoteStatusBadge(q.estado)}</div></div><div class="fg"><label>Total</label><input readonly value="${esc(q.moneda||'USD')} ${quoteGrand(q).toFixed(2)}"></div></div>
+ <div class="note" style="margin-top:14px"><b>Ítems de la cotización.</b> Calidad puede corregir excepcionalmente una cantidad o un precio unitario digitado de forma incorrecta. Toda modificación exige contraseña y motivo.</div>
+ ${traceNote}${quoteViewItemsHTML(q)}${quoteComparisonHTML(q.solicitudId,q.id)}`,
+ `<button class="btn" onclick="closeModal()">Cerrar</button><button class="btn blue" onclick="openQuoteItemCorrection('${id}')">✏️ Corregir ítems</button>`)
+}
+function openQuoteItemCorrection(id){
+ const q=quotations.find(x=>x.id===id);if(!q)return;
+ const rows=quoteItems(q);if(!rows.length){toast('La cotización no contiene ítems');return}
+ const linkedOrders=orders.filter(o=>o.cotizacionId===q.id&&o.estado!=='Anulada');
+ const emitted=linkedOrders.filter(o=>o.estado==='Emitida').length;
+ const body=`<div class="note"><b>🔐 Corrección excepcional de ítems cotizados.</b> Puede corregir cantidad y/o precio unitario cuando hubo un error de digitación o de selección de costo. Requiere contraseña CALIDAD y motivo obligatorio.</div>
+ ${linkedOrders.length?`<div class="note" style="margin-top:10px"><b>⚠ Protección de documentos históricos.</b> Existen ${linkedOrders.length} OC relacionada(s)${emitted?` y ${emitted} ya emitida(s)`:''}. Esta corrección no cambia ninguna OC existente. El nuevo valor se aplicará únicamente al saldo pendiente o a nuevas OC que se generen después de esta corrección.</div>`:''}
+ <div class="tableWrap" style="margin-top:14px"><table><thead><tr><th>Producto</th><th>Cantidad actual</th><th>Ya resuelto</th><th>Nueva cantidad</th><th>Precio actual</th><th>Nuevo precio unitario</th><th>Unidad</th></tr></thead><tbody>${rows.map((i,idx)=>{
+   const resolved=orderQtyForQuoteItem(q.id,idx)+Number(quoteItemLowRecord(q,idx)?.cantidadBaja||0);
+   const price=Number(i.precioSeleccionadoSnapshot??i.precioUnitario??0);
+   return`<tr><td>${esc(i.productoNombre||i.descripcion||'')}</td><td>${esc(i.cantidad||0)}</td><td>${resolved}</td><td><input class="qtc_qty" data-index="${idx}" type="number" min="${Math.max(resolved,0.000001)}" step="any" value="${esc(i.cantidad||0)}"></td><td>${price.toFixed(4)}</td><td><input class="qtc_price" data-index="${idx}" type="number" min="0.000001" step="0.0001" value="${esc(price)}"></td><td>${esc(i.unidad||'Unidad')}</td></tr>`
+ }).join('')}</tbody></table></div>
+ <div class="formGrid" style="margin-top:14px"><div class="fg full"><label>Motivo de la corrección *</label><textarea id="qtc_reason" placeholder="Ej.: se seleccionó un costo incorrecto / el precio correcto ofertado era 68.50 / la cantidad correcta era 10."></textarea></div><div class="fg full"><label>Contraseña de Calidad *</label><input id="qtc_pass" type="password" autocomplete="off"></div></div>`;
+ openModal('✏️ Corregir ítems · '+q.codigo,body,`<button class="btn" onclick="viewQuote('${id}')">Cancelar</button><button class="btn primary" onclick="confirmQuoteItemCorrection('${id}')">✓ Guardar corrección</button>`)
+}
+async function confirmQuoteItemCorrection(id){
+ const q=quotations.find(x=>x.id===id);if(!q)return;
+ const pass=$('qtc_pass')?.value||'',reason=$('qtc_reason')?.value.trim()||'';
+ if(pass!==QUALITY_ORDER_EDIT_PASSWORD){toast('Contraseña de Calidad incorrecta');return}
+ if(!reason){toast('Ingrese el motivo de la corrección');return}
+ const rows=quoteItems(q),changes=[];
+ for(let idx=0;idx<rows.length;idx++){
+   const qtyEl=document.querySelector('.qtc_qty[data-index="'+idx+'"]');
+   const priceEl=document.querySelector('.qtc_price[data-index="'+idx+'"]');
+   const nuevaCantidad=Number(qtyEl?.value||0);
+   const nuevoPrecio=Number(priceEl?.value||0);
+   const cantidadActual=Number(rows[idx].cantidad||0);
+   const precioActual=Number(rows[idx].precioSeleccionadoSnapshot??rows[idx].precioUnitario??0);
+   const resolved=orderQtyForQuoteItem(q.id,idx)+Number(quoteItemLowRecord(q,idx)?.cantidadBaja||0);
+   if(!Number.isFinite(nuevaCantidad)||nuevaCantidad<=0){toast('Todas las cantidades deben ser mayores a cero');return}
+   if(nuevaCantidad+1e-9<resolved){toast('La nueva cantidad no puede ser menor que lo ya ordenado o dado de baja');return}
+   if(!Number.isFinite(nuevoPrecio)||nuevoPrecio<=0){toast('Todos los precios deben ser mayores a cero');return}
+   const qtyChanged=Math.abs(nuevaCantidad-cantidadActual)>1e-9;
+   const priceChanged=Math.abs(nuevoPrecio-precioActual)>1e-9;
+   if(qtyChanged||priceChanged)changes.push({
+     idx,
+     producto:rows[idx].productoNombre||rows[idx].descripcion||'Producto',
+     cantidadAnterior:cantidadActual,cantidadNueva:nuevaCantidad,
+     precioAnterior:precioActual,precioNuevo:nuevoPrecio,
+     cantidadModificada:qtyChanged,precioModificado:priceChanged
+   });
+ }
+ if(!changes.length){toast('No existe ningún cambio de cantidad o precio');return}
+ const stamp=nowISO();
+ q.items=rows.map((i,idx)=>{
+   const c=changes.find(x=>x.idx===idx);if(!c)return i;
+   const out={...i,cantidad:c.cantidadNueva,precioUnitario:c.precioNuevo};
+   if(q.estado==='Seleccionada'||i.precioSeleccionadoSnapshot!=null){
+     out.precioSeleccionadoSnapshot=c.precioNuevo;
+     out.precioSeleccionadoFecha=stamp;
+     out.precioSeleccionadoMoneda=q.moneda||i.precioSeleccionadoMoneda||'USD';
+     out.precioSeleccionadoCorregido=true;
+   }
+   out.ultimaCorreccionCalidad={fecha:stamp,motivo:reason,cantidadAnterior:c.cantidadAnterior,cantidadNueva:c.cantidadNueva,precioAnterior:c.precioAnterior,precioNuevo:c.precioNuevo};
+   return out
+ });
+ q.correccionesItems=Array.isArray(q.correccionesItems)?q.correccionesItems:[];
+ q.correccionesItems.push({fecha:stamp,motivo:reason,usuario:'Autorización de Calidad',cambios:changes,
+   ocsExistentes:orders.filter(o=>o.cotizacionId===q.id&&o.estado!=='Anulada').map(o=>({id:o.id,codigo:o.codigo,estado:o.estado}))});
+ q.updatedAt=stamp;
+ q.estadoOC=quoteFullyResolvedForOrder(q)?'Cerrada':'Pendiente parcial';
+ await put('quotations',q);
+ const detail=changes.map(c=>{
+   const parts=[];
+   if(c.cantidadModificada)parts.push(`cantidad ${c.cantidadAnterior} → ${c.cantidadNueva}`);
+   if(c.precioModificado)parts.push(`precio ${c.precioAnterior.toFixed(4)} → ${c.precioNuevo.toFixed(4)}`);
+   return `${c.producto}: ${parts.join(', ')}`
+ }).join(' | ');
+ await logAudit('CORREGIR_ITEMS_COTIZACION',`${q.codigo} · ${detail} · ${reason}`,q.id,'Cotizaciones');
+ closeModal();renderAll();go('cotizaciones');
+ toast('Ítems corregidos. Las OC existentes conservan sus valores históricos; futuras OC usarán la corrección')
+}
+
+function openQuoteQuantityCorrection(id){openQuoteItemCorrection(id)}
+async function confirmQuoteQuantityCorrection(id){return confirmQuoteItemCorrection(id)}
 
 function exportQuotesJSON(){downloadBlob(new Blob([JSON.stringify({erp:'ERP_COMPRAS_V4',module:'cotizaciones',version:VERSION,records:quotations},null,2)],{type:'application/json'}),`BASE_COTIZACIONES_${VERSION}_${today()}.json`)}
 let pendingQuoteJSON=null;function openQuoteImportJSON(){if(effectiveRole()!=='Administrador')return permissionDenied('importar/restaurar datos','Administración');openModal('Restaurar Cotizaciones',`<div class="note">Seleccione una base JSON de C4 Cotizaciones.</div><button class="btn primary" onclick="$('quoteJsonInput').click()">Seleccionar JSON</button>`,`<button class="btn" onclick="closeModal()">Cerrar</button>`)}
