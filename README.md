@@ -1,4 +1,4 @@
-# ERP COMPRAS V4.0.0-C14.5.4.9
+# ERP COMPRAS V4.0.0-C14.5.4.10
 
 Producción GitHub / Netlify.
 
@@ -19,3 +19,9 @@ Clave de autorizaciones de Calidad: `CALIDAD`.
 - Responsable del formulario **Registrar consumo por OT** limitado a: Jipson Franco, Lizbeth Prieto, Joe Franco, Nidia Sanchez, Katherine Flores y José Núñez.
 - La OT automática sigue generándose según el responsable seleccionado.
 - No se altera Recepción OC ni sus responsables.
+
+
+## C14.5.4.10 — Maria Elena + búsqueda continua
+- Se agrega **Maria Elena** al selector de analistas/responsables de **Consumo por OT**.
+- Los buscadores que refrescan sus módulos conservan el foco y la posición del cursor mientras se escribe, evitando tener que volver a seleccionar el campo después de cada letra.
+- No se alteran reglas de consumo, lotes, FEFO, tara, inventario ni trazabilidad.
