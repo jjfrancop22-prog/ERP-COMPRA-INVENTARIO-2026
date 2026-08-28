@@ -1,17 +1,17 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.7",
-  "build": "C14.5.4.7",
+  "version": "V4.0.0-C14.5.4.8",
+  "build": "C14.5.4.8",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-27",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
-    "Recepción toma por defecto la fecha seleccionada al generar la OC",
-    "La fecha de Recepción continúa siendo editable antes de guardar",
-    "Ingreso a Inventario toma por defecto la fecha registrada en Recepción",
-    "La fecha de Ingreso continúa siendo editable antes de guardar",
-    "Se conserva intacta la conversión de presentación comercial a unidad base de inventario de C14.5.4.6"
+    "Seguimiento operativo de proveedores separado de la evaluación anual y semestral",
+    "Conteo automático de compras reales: OC distintas con recepción posterior al último seguimiento",
+    "Al alcanzar 5 compras se activa alerta de seguimiento operativo; no altera las evaluaciones formales",
+    "Cumplimiento de entrega calculado como referencia objetiva usando fecha OC, plazo pactado y primera recepción",
+    "Se conservan las fechas encadenadas editables y la conversión de presentación comercial a inventario"
   ]
 }
