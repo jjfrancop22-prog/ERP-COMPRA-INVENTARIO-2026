@@ -1,13 +1,15 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.16",
-  "build": "C14.5.4.16",
+  "version": "V4.0.0-C14.5.4.17",
+  "build": "C14.5.4.17",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-08-30",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
+    "Corrección crítica de baja por vencimiento: el movimiento ahora guarda unidad: unit y elimina el error JavaScript 'unidad is not defined'.",
+    "La baja vuelve a completarse con un solo clic: saldo 0, cierre local persistente, salida del inventario operativo y sincronización posterior con Firebase.",
     "Baja por vencimiento de un solo clic: la persistencia local se completa y la ventana se cierra antes de esperar Firebase o auditoría.",
     "Se evita el segundo clic y el mensaje engañoso de saldo ya agotado mediante bloqueo de doble ejecución y botón Procesando baja.",
     "Firebase y auditoría quedan desacoplados de la respuesta visual; si Internet está inestable, la baja permanece local y se sincroniza después.",

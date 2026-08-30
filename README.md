@@ -1,11 +1,15 @@
-# ERP COMPRAS V4.0.0-C14.5.4.16
+# ERP COMPRAS V4.0.0-C14.5.4.17 — FIX UNIDAD BAJA
+
+Corrección crítica: se reemplazó la referencia JavaScript indefinida `unidad` por `unidad: unit` al crear el movimiento de baja por caducidad. Esto elimina el error del primer clic y permite completar la baja local antes de sincronizar Firebase.
+
+# ERP COMPRAS V4.0.0-C14.5.4.16 (base anterior)
 
 Corrección puntual de baja por vencimiento en un solo clic y visualización correcta de versión.
 
 - La baja se persiste primero en IndexedDB y cierra inmediatamente la ventana.
 - Firebase/auditoría se procesan después y no bloquean la interfaz.
 - Doble clic protegido.
-- BUILD visible: C14.5.4.16.
+- BUILD base anterior: C14.5.4.16.
 - Service Worker actualizado.
 
 # ERP COMPRAS V4.0.0-C14.5.4.15

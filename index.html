@@ -446,7 +446,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.16</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.17</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -482,7 +482,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.16';
+const VERSION='V4.0.0-C14.5.4.17';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -2993,7 +2993,7 @@ async function confirmExpiryWriteoff(id){
   for(const c of env){c.estado='Baja por vencimiento';if(x.metodo==='Contable')c.cantidadActual=0;else if(x.metodo==='Sólido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0}else if(x.metodo==='Líquido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0;c.volumenActual=0}}
   syncInventoryFromContainers(x);if(x.metodo==='Contable')x.stockActual=0;else if(x.metodo==='Sólido pesable')x.masaNetaActual=0;else if(x.metodo==='Líquido pesable'){x.masaNetaActual=0;x.volumenActual=0}
   x.estado='Baja por vencimiento';x.estadoUso='Bloqueado definitivo';x.usoActivo=false;x.ocultarInventario=true;x.fechaBaja=fecha;x.motivoBaja='Producto vencido';x.observacionBaja=obs;x.updatedAt=nowISO();
-  const mov={id:uid('mov'),fecha:fecha+'T12:00:00',tipo:'Baja por caducidad',motivo:`Lote vencido ${x.caducidad||'sin fecha'}${obs?' · '+obs:''}`,detalle:'Retiro de existencia física vencida',saldoAnterior:before,saldo:0,unidad,createdAt:nowISO()};
+  const mov={id:uid('mov'),fecha:fecha+'T12:00:00',tipo:'Baja por caducidad',motivo:`Lote vencido ${x.caducidad||'sin fecha'}${obs?' · '+obs:''}`,detalle:'Retiro de existencia física vencida',saldoAnterior:before,saldo:0,unidad:unit,createdAt:nowISO()};
   if(x.metodo==='Sólido pesable')mov.masaConsumida=before;else if(x.metodo==='Líquido pesable')mov.volumenConsumido=before;else mov.cantidad=before;
   x.movimientos=[...(x.movimientos||[]),mov];
 
