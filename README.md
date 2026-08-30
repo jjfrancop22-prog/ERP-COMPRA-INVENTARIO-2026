@@ -1,3 +1,16 @@
+# ERP COMPRAS V4.0.0-C14.5.4.18 — CORRECCIÓN MOVIMIENTO + COSTO
+
+## Cambios de esta versión
+- Nueva opción **✏️ Corregir** en movimientos `Consumo OT` de inventario contable.
+- Requiere contraseña de Calidad y motivo obligatorio.
+- No elimina el movimiento original: conserva evidencia antes/después y auditoría.
+- Ajusta automáticamente el saldo del mismo envase/lote por la diferencia digitada.
+- Recalcula el costo de la salida corregida.
+- Corrige el Dashboard para incluir `Consumo OT` en consumo mensual y costo de consumo.
+- El costo usa el precio de la OC/lote convertido a la unidad base del inventario y queda congelado en el movimiento.
+
+Ejemplo validado: si el saldo actual es 11 y una salida fue digitada como 85 cuando debía ser 11, la corrección devuelve 74 unidades y el saldo pasa a **85 unidades**.
+
 # ERP COMPRAS V4.0.0-C14.5.4.17 — FIX UNIDAD BAJA
 
 Corrección crítica: se reemplazó la referencia JavaScript indefinida `unidad` por `unidad: unit` al crear el movimiento de baja por caducidad. Esto elimina el error del primer clic y permite completar la baja local antes de sincronizar Firebase.
