@@ -482,7 +482,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.14';
+const VERSION='V4.0.0-C14.5.4.15';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -645,6 +645,35 @@ function exportAuditExcel(){
 
 async function rawPut(store,obj){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(store,'readwrite').objectStore(store).put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})}
 async function rawDel(store,id){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(store,'readwrite').objectStore(store).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+async function inventoryWriteoffGuard(id){
+ try{return (await getAll('syncMeta')).find(x=>x.key===`inventoryWriteoff|${id}`)||null}catch{return null}
+}
+async function saveInventoryWriteoffGuard(x,before=0,fecha=today(),unit=''){
+ const snapshot=JSON.parse(JSON.stringify(x));
+ const row={key:`inventoryWriteoff|${x.id}`,store:'inventory',docId:String(x.id),writeoffAt:nowISO(),fechaBaja:fecha,qtyBefore:Number(before||0),unit:unit||inventoryStockUnit(x),snapshot,deviceId:localDeviceId(),version:VERSION};
+ await rawPut('syncMeta',row);return row
+}
+function forceWriteoffSnapshot(row,guard){
+ const snap=guard?.snapshot||{};
+ const x={...(row||{}),...snap,id:snap.id||row?.id||guard?.docId};
+ x.estado='Baja por vencimiento';x.estadoUso='Bloqueado definitivo';x.usoActivo=false;x.ocultarInventario=true;
+ if(!x.fechaBaja)x.fechaBaja=guard?.fechaBaja||today();
+ if(!x.motivoBaja)x.motivoBaja='Producto vencido';
+ const env=Array.isArray(x.envases)?x.envases:[];
+ for(const c of env){c.estado='Baja por vencimiento';if(x.metodo==='Contable')c.cantidadActual=0;else{c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0;if(x.metodo==='Líquido pesable')c.volumenActual=0}}
+ if(x.metodo==='Contable')x.stockActual=0;
+ else if(x.metodo==='Sólido pesable')x.masaNetaActual=0;
+ else if(x.metodo==='Líquido pesable'){x.masaNetaActual=0;x.volumenActual=0}
+ x.updatedAt=snap.updatedAt||guard?.writeoffAt||nowISO();return x
+}
+async function applyInventoryWriteoffGuards(){
+ let guards=[];try{guards=(await getAll('syncMeta')).filter(x=>String(x.key||'').startsWith('inventoryWriteoff|'))}catch{return 0}
+ if(!guards.length)return 0;let changed=0;const rows=await getAll('inventory'),map=new Map(rows.map(x=>[String(x.id),x]));
+ for(const g of guards){const id=String(g.docId||String(g.key).split('|').pop()),cur=map.get(id)||null;const bad=!cur||cur.estado!=='Baja por vencimiento'||!cur.ocultarInventario||inventoryCurrentValue(cur)>0;
+  if(bad){const fixed=forceWriteoffSnapshot(cur,g);await rawPut('inventory',fixed);map.set(id,fixed);changed++}
+ }
+ return changed
+}
 async function put(store,obj){
  if(!canWriteStore(store))throw new Error(`PERMISO_DENEGADO:${effectiveRole()}:${store}`);
  const previous=obj?.id?(await getAll(store)).find(x=>String(x.id)===String(obj.id))||null:null;
@@ -673,7 +702,7 @@ async function logAudit(action,detail,entityId='',module='Proveedores',meta={}){
  if(FIREBASE_SYNC_STORES.includes('audit'))await queueFirebaseChange('UPSERT','audit',row.id,row);
  return row
 }
-async function loadData(){providers=await getAll('providers');products=await getAll('products');requests=await getAll('requests');quotations=await getAll('quotations');orders=await getAll('orders');receptions=await getAll('receptions');inventory=await getAll('inventory');technicalServices=await getAll('technicalServices');invoices=await getAll('invoices');payables=await getAll('payables');payments=await getAll('payments');supplierEvaluations=await getAll('supplierEvaluations');audit=(await getAll('audit')).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,5000);renderAll()}
+async function loadData(){providers=await getAll('providers');products=await getAll('products');requests=await getAll('requests');quotations=await getAll('quotations');orders=await getAll('orders');receptions=await getAll('receptions');inventory=await getAll('inventory');await applyInventoryWriteoffGuards();inventory=await getAll('inventory');technicalServices=await getAll('technicalServices');invoices=await getAll('invoices');payables=await getAll('payables');payments=await getAll('payments');supplierEvaluations=await getAll('supplierEvaluations');audit=(await getAll('audit')).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,5000);renderAll()}
 
 function buildNav(){const nav=$('nav');nav.innerHTML=sequence.filter(([id])=>canViewPage(id)).map(([id,name,ico,active])=>`<button data-page="${id}" class="${id===currentPage?'active':''} ${active?'':'locked'}" ${active?`onclick="go('${id}')"`:''}><span class="ico">${ico}</span><span>${name}</span></button>`).join('')}
 function go(page){
@@ -2962,7 +2991,7 @@ async function confirmExpiryWriteoff(id){
  syncInventoryFromContainers(x);if(x.metodo==='Contable')x.stockActual=0;else if(x.metodo==='Sólido pesable')x.masaNetaActual=0;else if(x.metodo==='Líquido pesable'){x.masaNetaActual=0;x.volumenActual=0}x.estado='Baja por vencimiento';x.estadoUso='Bloqueado definitivo';x.usoActivo=false;x.ocultarInventario=true;x.fechaBaja=fecha;x.motivoBaja='Producto vencido';x.observacionBaja=obs;x.updatedAt=nowISO();
  const mov={id:uid('mov'),fecha:fecha+'T12:00:00',tipo:'Baja por caducidad',motivo:`Lote vencido ${x.caducidad||'sin fecha'}${obs?' · '+obs:''}`,detalle:'Retiro de existencia física vencida',saldoAnterior:before,saldo:0,unidad,createdAt:nowISO()};
  if(x.metodo==='Sólido pesable')mov.masaConsumida=before;else if(x.metodo==='Líquido pesable')mov.volumenConsumido=before;else mov.cantidad=before;
- x.movimientos=[...(x.movimientos||[]),mov];await put('inventory',x);await logAudit('BAJA_POR_CADUCIDAD',`${x.productoNombre} · Lote ${x.loteProveedor||x.lotePSI} · ${before.toFixed(x.metodo==='Contable'?0:3)} ${unit}`,x.id,'Inventario');if(navigator.onLine)processFirebaseOutbox().catch(console.warn);closeModal();renderAll();inventoryMasterTab='maestro';go('inventario');toast('Baja registrada: el lote salió del inventario operativo y conserva su trazabilidad')
+ x.movimientos=[...(x.movimientos||[]),mov];await saveInventoryWriteoffGuard(x,before,fecha,unit);await put('inventory',x);await logAudit('BAJA_POR_CADUCIDAD',`${x.productoNombre} · Lote ${x.loteProveedor||x.lotePSI} · ${before.toFixed(x.metodo==='Contable'?0:3)} ${unit}`,x.id,'Inventario');if(navigator.onLine)processFirebaseOutbox().catch(console.warn);closeModal();renderAll();inventoryMasterTab='maestro';go('inventario');toast('Baja registrada: el lote salió del inventario operativo y conserva su trazabilidad')
 }
 function inventoryHistoryHTML(x){const rows=(x.movimientos||[]).slice().reverse();return`<div class="inventoryHistory"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Consumo / Cantidad</th><th>Saldo</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${esc(m.fecha||'')}</td><td>${esc(m.tipo||'')}</td><td>${esc(m.motivo||m.detalle||'')}</td><td>${m.masaConsumida!=null?Number(m.masaConsumida).toFixed(4)+' g':m.volumenConsumido!=null?Number(m.volumenConsumido).toFixed(4)+' mL':m.cantidad!=null?esc(m.cantidad):'—'}</td><td>${m.saldo!=null?Number(m.saldo).toFixed(4):'—'}</td></tr>`).join('')||'<tr><td colspan="5">Sin movimientos</td></tr>'}</tbody></table></div>`}
 function openInventoryEntryDateCorrection(id){
@@ -3165,6 +3194,15 @@ async function applyCloudUpsert(store,id,data){
  if(data?._sync?.deviceId===localDeviceId())return;
  const clean={...stripCloudMeta(data),id};
  const current=(await getAll(store)).find(x=>String(x.id)===String(id));
+ if(store==='inventory'){
+  const guard=await inventoryWriteoffGuard(id);
+  if(guard&&clean.estado!=='Baja por vencimiento'){
+   const authoritative=forceWriteoffSnapshot(current,guard);await rawPut('inventory',authoritative);
+   const alreadyPending=(await firebaseOutbox()).some(r=>r.store==='inventory'&&String(r.docId)===String(id));
+   if(!alreadyPending)await queueFirebaseChange('UPSERT','inventory',id,authoritative);
+   pushSyncEvent('PROTEGIDO',store,id,'Baja definitiva local: se rechazó una versión remota anterior y se reenvió el cierre a Firebase');return
+  }
+ }
  if(current&&firebaseComparable(current)===firebaseComparable(clean))return;
  const pending=(await firebaseOutbox()).some(r=>r.store===store&&String(r.docId)===String(id));
  if(pending){pushSyncEvent('PROTEGIDO',store,id,'Cambio local pendiente: se ignoró una versión remota hasta completar la salida');return}
@@ -3834,7 +3872,7 @@ async function exportERPBackup(){
 function updateNet(){const el=$('net');el.textContent=navigator.onLine?'● ONLINE':'● OFFLINE';el.classList.toggle('ok',navigator.onLine)}addEventListener('online',()=>{updateNet();scheduleFirebaseSync();startFirebaseLiveSync().catch(console.warn);autoProcessFirebaseOutbox().catch(console.warn)});addEventListener('offline',()=>{updateNet();firebaseRuntime.state='OFFLINE';firebaseRuntime.detail='Sin Internet · cambios quedan en cola local';renderAdministration()});updateNet();
 if('serviceWorker' in navigator)addEventListener('load',async()=>{
  try{
-  const reg=await navigator.serviceWorker.register('./service-worker.js');
+  const reg=await navigator.serviceWorker.register('./service-worker.js?v='+encodeURIComponent(VERSION));
   pwaRuntime.registration=reg;
   if(reg.waiting&&navigator.serviceWorker.controller)showPwaUpdate(reg);
   reg.addEventListener('updatefound',()=>{

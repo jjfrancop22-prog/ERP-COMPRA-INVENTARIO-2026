@@ -1,6 +1,15 @@
-# ERP COMPRAS V4.0.0-C14.5.4.14
+# ERP COMPRAS V4.0.0-C14.5.4.15
 
 Producción GitHub / Netlify.
+
+## C14.5.4.15 — Baja definitiva persistente
+- La baja por vencimiento crea un **guard de cierre local** antes de sincronizar.
+- Al actualizar la página, el lote no puede recuperar el saldo anterior desde Firebase.
+- Si una versión remota antigua intenta restaurarlo, se rechaza y se reenvía a Firebase el estado **Baja por vencimiento / saldo 0**.
+- El lote desaparece del Inventario maestro operativo, pero continúa disponible en movimientos, historial y auditoría.
+- Se conserva la fecha de ingreso corregida y el buscador continuo de C14.5.4.14.
+- Service Worker con activación inmediata para evitar que Chrome mezcle C14.5.4.13/C14.5.4.14 con la nueva versión.
+
 
 Corrección puntual de Inventario: la recepción conserva la presentación comercial (por ejemplo, **1 Caja**), pero para productos de método **Contable** el ERP convierte el contenido de esa presentación a la **unidad base de inventario**. Ejemplo: **1 Caja × 25 Unidades = 25 Unidades** disponibles.
 
