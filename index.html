@@ -446,7 +446,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue">BUILD C14.5.4.13</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.16</span><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -482,7 +482,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.15';
+const VERSION='V4.0.0-C14.5.4.16';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -555,7 +555,7 @@ function updateInventoryPreparation(){
 }
 
 let providers=[];let products=[];let requests=[];let quotations=[];let orders=[];let receptions=[];let inventory=[];let technicalServices=[];let invoices=[];let payables=[];let payments=[];let supplierEvaluations=[];let audit=[];
-let saving=false;let savingProduct=false;let savingRequest=false;let savingQuote=false;let savingOrder=false;let savingReception=false;let savingInventory=false;let requestSearch="";let requestStateFilter="";let requestPriorityFilter="";let requestSortField="codigo";let requestSortDir=1;let sortField='codigo';let sortDir=1;let currentPage='dashboard';
+let saving=false;let savingProduct=false;let savingRequest=false;let savingQuote=false;let savingOrder=false;let savingReception=false;let savingInventory=false;let savingExpiryWriteoff=false;let requestSearch="";let requestStateFilter="";let requestPriorityFilter="";let requestSortField="codigo";let requestSortDir=1;let sortField='codigo';let sortDir=1;let currentPage='dashboard';
 let inventoryFilter='Todos';let supplierEvalTab='dashboard';let supplierEvalFilter='';let alertFilterLevel='';let alertFilterCategory='';let alertFilterText='';
 let inventoryMasterTab='dashboard';
 let inventoryMasterSearch='';
@@ -2977,21 +2977,44 @@ function openExpiryWriteoff(id){
  const st=inventoryState(x),qty=inventoryCurrentValue(x),unit=inventoryStockUnit(x);
  if(st!=='Vencido'||qty<=0){toast('El lote no tiene saldo vencido pendiente de baja');return}
  const suggestedEntry=(x.tipoRegistro==='INGRESO_HISTORICO'&&String(x.loteProveedor||'')==='1236393')?'2026-06-28':(x.fechaIngreso||'');
- openModal('🗑 Baja de inventario por caducidad',`<div class="note"><b>Esta acción no elimina el historial.</b> El lote saldrá del inventario operativo, quedará con saldo 0 y conservará su trazabilidad.</div><div class="formGrid" style="margin-top:12px"><div class="fg"><label>Producto</label><input readonly value="${esc(x.productoNombre||'')}"></div><div class="fg"><label>Lote</label><input readonly value="${esc(x.loteProveedor||x.lotePSI||'—')}"></div><div class="fg"><label>Caducidad</label><input readonly value="${esc(x.caducidad||'—')}"></div><div class="fg"><label>Saldo a dar de baja</label><input readonly value="${qty.toFixed(x.metodo==='Contable'?0:3)} ${esc(unit)}"></div><div class="fg"><label>Fecha de ingreso</label><input type="date" id="exp_fecha_ingreso" value="${esc(suggestedEntry)}"><div class="help">Puede corregirse aquí antes de cerrar definitivamente el lote.</div></div><div class="fg"><label>Fecha de baja</label><input type="date" id="exp_baja_fecha" value="${today()}"></div><div class="fg"><label>Motivo</label><input readonly value="Producto vencido"></div><div class="fg full"><label>Observación</label><textarea id="exp_baja_obs" placeholder="Opcional: disposición final, acta, gestor, novedad..."></textarea></div></div>`,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn red" onclick="confirmExpiryWriteoff('${id}')">Confirmar baja</button>`)
+ openModal('🗑 Baja de inventario por caducidad',`<div class="note"><b>Esta acción no elimina el historial.</b> El lote saldrá del inventario operativo, quedará con saldo 0 y conservará su trazabilidad.</div><div class="formGrid" style="margin-top:12px"><div class="fg"><label>Producto</label><input readonly value="${esc(x.productoNombre||'')}"></div><div class="fg"><label>Lote</label><input readonly value="${esc(x.loteProveedor||x.lotePSI||'—')}"></div><div class="fg"><label>Caducidad</label><input readonly value="${esc(x.caducidad||'—')}"></div><div class="fg"><label>Saldo a dar de baja</label><input readonly value="${qty.toFixed(x.metodo==='Contable'?0:3)} ${esc(unit)}"></div><div class="fg"><label>Fecha de ingreso</label><input type="date" id="exp_fecha_ingreso" value="${esc(suggestedEntry)}"><div class="help">Puede corregirse aquí antes de cerrar definitivamente el lote.</div></div><div class="fg"><label>Fecha de baja</label><input type="date" id="exp_baja_fecha" value="${today()}"></div><div class="fg"><label>Motivo</label><input readonly value="Producto vencido"></div><div class="fg full"><label>Observación</label><textarea id="exp_baja_obs" placeholder="Opcional: disposición final, acta, gestor, novedad..."></textarea></div></div>`,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn red" id="confirmExpiryWriteoffBtn" onclick="confirmExpiryWriteoff('${id}')">Confirmar baja</button>`)
 }
 async function confirmExpiryWriteoff(id){
  if(!requireWrite('inventario','confirmar baja por vencimiento'))return;
+ if(savingExpiryWriteoff){toast('La baja ya se está procesando');return}
  const x=inventory.find(v=>v.id===id);if(!x)return;
  const st=inventoryState(x),before=inventoryCurrentValue(x),unit=inventoryStockUnit(x);
  if(st!=='Vencido'||before<=0){toast('El lote ya no tiene saldo vencido pendiente');closeModal();return}
- const fecha=$('exp_baja_fecha')?.value||today(),fechaIngresoNueva=$('exp_fecha_ingreso')?.value||x.fechaIngreso||'',obs=$('exp_baja_obs')?.value.trim()||'',env=ensureContainers(x);
- const fechaIngresoAnterior=x.fechaIngreso||'';
- if(fechaIngresoNueva&&fechaIngresoNueva!==fechaIngresoAnterior){x.fechaIngreso=fechaIngresoNueva;if(x.tipoRegistro==='INGRESO_HISTORICO'){const first=(x.movimientos||[]).find(m=>m.tipo==='Entrada histórica');if(first)first.fecha=fechaIngresoNueva+'T12:00:00'}x.correccionesFechaIngreso=[...(x.correccionesFechaIngreso||[]),{fechaCorreccion:nowISO(),usuario:authRuntime?.user?.email||'',antes:fechaIngresoAnterior,despues:fechaIngresoNueva,motivo:'Corrección registrada durante baja por vencimiento'}]}
- for(const c of env){c.estado='Baja por vencimiento';if(x.metodo==='Contable')c.cantidadActual=0;else if(x.metodo==='Sólido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0}else if(x.metodo==='Líquido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0;c.volumenActual=0}}
- syncInventoryFromContainers(x);if(x.metodo==='Contable')x.stockActual=0;else if(x.metodo==='Sólido pesable')x.masaNetaActual=0;else if(x.metodo==='Líquido pesable'){x.masaNetaActual=0;x.volumenActual=0}x.estado='Baja por vencimiento';x.estadoUso='Bloqueado definitivo';x.usoActivo=false;x.ocultarInventario=true;x.fechaBaja=fecha;x.motivoBaja='Producto vencido';x.observacionBaja=obs;x.updatedAt=nowISO();
- const mov={id:uid('mov'),fecha:fecha+'T12:00:00',tipo:'Baja por caducidad',motivo:`Lote vencido ${x.caducidad||'sin fecha'}${obs?' · '+obs:''}`,detalle:'Retiro de existencia física vencida',saldoAnterior:before,saldo:0,unidad,createdAt:nowISO()};
- if(x.metodo==='Sólido pesable')mov.masaConsumida=before;else if(x.metodo==='Líquido pesable')mov.volumenConsumido=before;else mov.cantidad=before;
- x.movimientos=[...(x.movimientos||[]),mov];await saveInventoryWriteoffGuard(x,before,fecha,unit);await put('inventory',x);await logAudit('BAJA_POR_CADUCIDAD',`${x.productoNombre} · Lote ${x.loteProveedor||x.lotePSI} · ${before.toFixed(x.metodo==='Contable'?0:3)} ${unit}`,x.id,'Inventario');if(navigator.onLine)processFirebaseOutbox().catch(console.warn);closeModal();renderAll();inventoryMasterTab='maestro';go('inventario');toast('Baja registrada: el lote salió del inventario operativo y conserva su trazabilidad')
+ const btn=$('confirmExpiryWriteoffBtn');savingExpiryWriteoff=true;if(btn){btn.disabled=true;btn.textContent='Procesando baja...'}
+ try{
+  const fecha=$('exp_baja_fecha')?.value||today(),fechaIngresoNueva=$('exp_fecha_ingreso')?.value||x.fechaIngreso||'',obs=$('exp_baja_obs')?.value.trim()||'',env=ensureContainers(x);
+  const fechaIngresoAnterior=x.fechaIngreso||'';
+  if(fechaIngresoNueva&&fechaIngresoNueva!==fechaIngresoAnterior){x.fechaIngreso=fechaIngresoNueva;if(x.tipoRegistro==='INGRESO_HISTORICO'){const first=(x.movimientos||[]).find(m=>m.tipo==='Entrada histórica');if(first)first.fecha=fechaIngresoNueva+'T12:00:00'}x.correccionesFechaIngreso=[...(x.correccionesFechaIngreso||[]),{fechaCorreccion:nowISO(),usuario:authRuntime?.user?.email||'',antes:fechaIngresoAnterior,despues:fechaIngresoNueva,motivo:'Corrección registrada durante baja por vencimiento'}]}
+  for(const c of env){c.estado='Baja por vencimiento';if(x.metodo==='Contable')c.cantidadActual=0;else if(x.metodo==='Sólido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0}else if(x.metodo==='Líquido pesable'){c.pesoBrutoActual=Number(c.tara||0);c.masaNetaActual=0;c.volumenActual=0}}
+  syncInventoryFromContainers(x);if(x.metodo==='Contable')x.stockActual=0;else if(x.metodo==='Sólido pesable')x.masaNetaActual=0;else if(x.metodo==='Líquido pesable'){x.masaNetaActual=0;x.volumenActual=0}
+  x.estado='Baja por vencimiento';x.estadoUso='Bloqueado definitivo';x.usoActivo=false;x.ocultarInventario=true;x.fechaBaja=fecha;x.motivoBaja='Producto vencido';x.observacionBaja=obs;x.updatedAt=nowISO();
+  const mov={id:uid('mov'),fecha:fecha+'T12:00:00',tipo:'Baja por caducidad',motivo:`Lote vencido ${x.caducidad||'sin fecha'}${obs?' · '+obs:''}`,detalle:'Retiro de existencia física vencida',saldoAnterior:before,saldo:0,unidad,createdAt:nowISO()};
+  if(x.metodo==='Sólido pesable')mov.masaConsumida=before;else if(x.metodo==='Líquido pesable')mov.volumenConsumido=before;else mov.cantidad=before;
+  x.movimientos=[...(x.movimientos||[]),mov];
+
+  // 1) Persistencia local autoritativa. La interfaz NO espera Firebase ni auditoría.
+  await saveInventoryWriteoffGuard(x,before,fecha,unit);
+  await rawPut('inventory',x);
+
+  // 2) Respuesta visual inmediata: un solo clic cierra y actualiza el Inventario maestro.
+  inventory=inventory.map(v=>String(v.id)===String(x.id)?x:v);
+  closeModal();inventoryMasterTab='maestro';renderAll();go('inventario');
+  toast('Baja registrada: el lote salió del inventario operativo y conserva su trazabilidad');
+
+  // 3) Sincronización y auditoría desacopladas: un fallo de red jamás deja el modal "pegado".
+  queueFirebaseChange('UPSERT','inventory',x.id,x).then(()=>{if(navigator.onLine)processFirebaseOutbox().catch(console.warn)}).catch(e=>console.warn('Baja guardada localmente; Firebase queda pendiente',e));
+  logAudit('BAJA_POR_CADUCIDAD',`${x.productoNombre} · Lote ${x.loteProveedor||x.lotePSI} · ${before.toFixed(x.metodo==='Contable'?0:3)} ${unit}`,x.id,'Inventario').catch(e=>console.warn('Baja guardada; auditoría pendiente',e));
+ }catch(e){
+  console.error(e);toast('No se pudo completar la baja local: '+(e?.message||e));
+ }finally{
+  savingExpiryWriteoff=false;
+  const b=$('confirmExpiryWriteoffBtn');if(b){b.disabled=false;b.textContent='Confirmar baja'}
+ }
 }
 function inventoryHistoryHTML(x){const rows=(x.movimientos||[]).slice().reverse();return`<div class="inventoryHistory"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Consumo / Cantidad</th><th>Saldo</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${esc(m.fecha||'')}</td><td>${esc(m.tipo||'')}</td><td>${esc(m.motivo||m.detalle||'')}</td><td>${m.masaConsumida!=null?Number(m.masaConsumida).toFixed(4)+' g':m.volumenConsumido!=null?Number(m.volumenConsumido).toFixed(4)+' mL':m.cantidad!=null?esc(m.cantidad):'—'}</td><td>${m.saldo!=null?Number(m.saldo).toFixed(4):'—'}</td></tr>`).join('')||'<tr><td colspan="5">Sin movimientos</td></tr>'}</tbody></table></div>`}
 function openInventoryEntryDateCorrection(id){
@@ -3869,7 +3892,8 @@ async function exportERPBackup(){
 }
 
 
-function updateNet(){const el=$('net');el.textContent=navigator.onLine?'● ONLINE':'● OFFLINE';el.classList.toggle('ok',navigator.onLine)}addEventListener('online',()=>{updateNet();scheduleFirebaseSync();startFirebaseLiveSync().catch(console.warn);autoProcessFirebaseOutbox().catch(console.warn)});addEventListener('offline',()=>{updateNet();firebaseRuntime.state='OFFLINE';firebaseRuntime.detail='Sin Internet · cambios quedan en cola local';renderAdministration()});updateNet();
+function updateBuildBadge(){const el=$('buildBadge');if(el)el.textContent='BUILD '+VERSION.replace(/^V4\.0\.0-/,'')}
+function updateNet(){const el=$('net');el.textContent=navigator.onLine?'● ONLINE':'● OFFLINE';el.classList.toggle('ok',navigator.onLine)}addEventListener('online',()=>{updateNet();scheduleFirebaseSync();startFirebaseLiveSync().catch(console.warn);autoProcessFirebaseOutbox().catch(console.warn)});addEventListener('offline',()=>{updateNet();firebaseRuntime.state='OFFLINE';firebaseRuntime.detail='Sin Internet · cambios quedan en cola local';renderAdministration()});updateNet();updateBuildBadge();
 if('serviceWorker' in navigator)addEventListener('load',async()=>{
  try{
   const reg=await navigator.serviceWorker.register('./service-worker.js?v='+encodeURIComponent(VERSION));
