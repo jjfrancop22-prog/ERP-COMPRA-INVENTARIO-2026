@@ -1,4 +1,4 @@
-const CACHE='erp-compras-v4-c14-5-4-13-baja-vencimiento-20260830';
+const CACHE='erp-compras-v4-c14-5-4-14-inventario-persistencia-20260830';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icons/icon-192.svg','./icons/icon-512.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));Promise.resolve()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});

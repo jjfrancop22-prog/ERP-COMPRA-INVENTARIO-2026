@@ -1,4 +1,4 @@
-# ERP COMPRAS V4.0.0-C14.5.4.13
+# ERP COMPRAS V4.0.0-C14.5.4.14
 
 Producción GitHub / Netlify.
 
@@ -27,8 +27,15 @@ Clave de autorizaciones de Calidad: `CALIDAD`.
 - No se alteran reglas de consumo, lotes, FEFO, tara, inventario ni trazabilidad.
 
 
-## C14.5.4.13 — Baja trazable por vencimiento
+## C14.5.4.14 — Baja trazable por vencimiento
 - Lote vencido con saldo: `VENCIDO · PENDIENTE DE BAJA`.
 - Bloqueo automático para FEFO/consumo.
 - Baja manual confirmada con saldo a cero, estado final, movimiento integrado y auditoría.
 - No se elimina el registro histórico.
+
+
+## C14.5.4.14
+- Corrige persistencia de bajas por vencimiento y evita que Firebase restaure una versión antigua mientras exista un cambio local pendiente.
+- Los lotes dados de baja dejan de aparecer en el inventario operativo, pero sus movimientos permanecen trazables.
+- Buscador de inventario con escritura continua y búsqueda ampliada.
+- Corrección trazable de fecha de ingreso; lote histórico 1236393 sugiere 2026-06-28.
