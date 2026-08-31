@@ -1,4 +1,13 @@
-# ERP COMPRAS V4.0.0-C14.5.4.21 — CORRECCIÓN PESABLE + ALERTAS IA TRANSVERSALES
+# ERP COMPRAS V4.0.0-C14.5.4.22 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
+
+
+## Mejora C14.5.4.22
+
+- Nueva barra de búsqueda en **Órdenes de Compra**: busca por N.º OC, proveedor, cotización, solicitud, área, estado y también por productos/marca/catálogo incluidos en la OC.
+- Filtro por estado y selector de orden: reciente, N.º OC, fecha, proveedor y total.
+- Los filtros son **solo de consulta** y quedan habilitados para todos los usuarios, independientemente del cargo o rol.
+- Botón **Limpiar filtros** y contador de resultados visibles.
+- No se modifican permisos de creación, edición, firma, recepción, eliminación ni restauración.
 
 ## Cambios principales
 

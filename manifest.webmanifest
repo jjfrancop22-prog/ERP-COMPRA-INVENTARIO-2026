@@ -1,7 +1,7 @@
 {
   "name": "ERP Compras Enterprise V4",
   "short_name": "ERP Compras V4",
-  "description": "ERP Compras Enterprise V4 · Producción C14.5.4.21",
+  "description": "ERP Compras Enterprise V4 · Producción C14.5.4.22",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
