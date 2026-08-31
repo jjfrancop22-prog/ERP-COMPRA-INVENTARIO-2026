@@ -1,4 +1,4 @@
-const CACHE='erp-compras-v4-c14-5-4-20-alertas-ia-20260830';
+const CACHE='erp-compras-v4-c14-5-4-21-correccion-pesable-alertas-ia-20260830';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icons/icon-192.svg','./icons/icon-512.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
@@ -9,5 +9,3 @@ self.addEventListener('message',event=>{
     self.skipWaiting();
   }
 });
-
-self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{for(const c of list){if('focus'in c)return c.focus()}return clients.openWindow('./index.html')}))});
