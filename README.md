@@ -1,3 +1,22 @@
+# ERP COMPRAS V4.0.0-C14.5.4.20 — ALERTAS INTELIGENTES
+
+## Nuevo en C14.5.4.20
+- Motor local de detección inteligente para costos atípicos, consumos fuera de patrón y riesgo de agotamiento.
+- Campana 🤖 con contador visible de señales IA.
+- Notificaciones del navegador/PC opcionales, siempre con permiso explícito.
+- Sensibilidad configurable: Baja, Normal o Alta.
+- El motor es de solo lectura: no modifica existencias, movimientos ni trazabilidad.
+- Mantiene la corrección C14.5.4.19 para que el costo del Dashboard coincida con el XLSX gerencial.
+
+# ERP COMPRAS V4.0.0-C14.5.4.19 — COSTO DASHBOARD = XLSX
+
+## Corrección puntual
+- **Mayor costo de consumo** usa la misma valorización por unidad base que el reporte XLSX gerencial.
+- Evita multiplicar mL/g por el precio total del frasco o botella.
+- Corrige automáticamente la visualización de movimientos ya registrados, sin modificar cantidades ni saldos.
+- Nuevos consumos guardan el costo unitario económico correcto.
+- Nuevos ingresos convierten el precio comercial a costo por unidad base mediante el contenido/factor de presentación.
+
 # ERP COMPRAS V4.0.0-C14.5.4.18 — CORRECCIÓN MOVIMIENTO + COSTO
 
 ## Cambios de esta versión
