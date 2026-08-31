@@ -1,7 +1,7 @@
-# ERP COMPRAS V4.0.0-C14.5.4.22 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
+# ERP COMPRAS V4.0.0-C14.5.4.23 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
 
 
-## Mejora C14.5.4.22
+## Mejora C14.5.4.23
 
 - Nueva barra de búsqueda en **Órdenes de Compra**: busca por N.º OC, proveedor, cotización, solicitud, área, estado y también por productos/marca/catálogo incluidos en la OC.
 - Filtro por estado y selector de orden: reciente, N.º OC, fecha, proveedor y total.
