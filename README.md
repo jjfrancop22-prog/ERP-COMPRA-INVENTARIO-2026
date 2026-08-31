@@ -1,7 +1,12 @@
-# ERP COMPRAS V4.0.0-C14.5.4.23 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
+# ERP COMPRAS V4.0.0-C14.5.4.25 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
 
 
-## Mejora C14.5.4.23
+## Mejora C14.5.4.25
+
+- El Reporte gerencial de Inventario incorpora la columna **Área solicitante / uso**, enlazada con el campo **Área de uso / destino** del Producto maestro.
+- La columna se incluye en filtros y formato del XLSX sin modificar cálculos, saldos, costos, lotes ni movimientos.
+
+## Mejora C14.5.4.24
 
 - Nueva barra de búsqueda en **Órdenes de Compra**: busca por N.º OC, proveedor, cotización, solicitud, área, estado y también por productos/marca/catálogo incluidos en la OC.
 - Filtro por estado y selector de orden: reciente, N.º OC, fecha, proveedor y total.

@@ -485,7 +485,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.23';
+const VERSION='V4.0.0-C14.5.4.25';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -1019,7 +1019,18 @@ async function saveProduct(id=''){if(!requireWrite('productos','crear o modifica
  try{
   const original=products.find(x=>x.id===id)||{},pv=vars.find(v=>v.principal)||vars[0];
   const obj={...original,id:original.id||uid('prd'),codigo:original.codigo||$('prod_codigo')?.value||nextProductCode(),codigoOperativo:$('prod_codigoOperativo')?.value||'',codigoInternoOperativo:$('prod_codigoOperativo')?.value||'',codigoGrupo:$('prod_codigoGrupo')?.value||'',areaFamiliaCodigo:productCodeConfig($('prod_codigoGrupo')?.value||'')?.label||'',nombre,clasificacion,unidad,estado,variantes:vars,fabricante:pv.marca||original.fabricante||original.fabricanteGeneral||'',marcaGeneral:pv.marca||original.marcaGeneral||'',fabricanteGeneral:pv.marca||original.fabricanteGeneral||'',nombreGeneral:nombre,unidadBase:unidad,paisOrigen:$('prod_paisOrigen')?.value||'Ecuador',areaUso:$('prod_area')?.value||'',areaDestino:$('prod_area')?.value||'',requiereLote:!!$('prod_requiereLote')?.checked,requiereCaducidad:!!$('prod_requiereCaducidad')?.checked,requiereCOA:!!$('prod_requiereCOA')?.checked,requiereSDS:!!$('prod_requiereSDS')?.checked,requiereFrio:!!$('prod_requiereFrio')?.checked,requiereAlmacenamiento:!!$('prod_requiereAlmacenamiento')?.checked,requiereCertificadoCalibracion:!!$('prod_requiereCertificadoCalibracion')?.checked,requiereCertificadoMantenimiento:!!$('prod_requiereCertificadoMantenimiento')?.checked,inventarioDestino:invRoute.destino,inventarioMetodo:invMethod,densidadReferencia:invMethod==='Líquido pesable'?($('prod_invDensidad')?.value||''):'',ubicacionInventario:$('prod_invUbicacion')?.value||'',inventarioPreconfigurado:true,inventarioGeneraStock:['Inventario técnico','Inventario de insumos','Servicio Técnico / Repuestos'].includes(invRoute.destino),servicioTecnicoDestino:invRoute.destino.startsWith('Servicio Técnico'),marca:pv.marca,presentacion:pv.presentacion,presentacionGeneral:pv.presentacion,catalogo:pv.catalogo,referenciaFabricante:pv.catalogo,proveedorPrincipal:pv.proveedor,ultimoPrecio:pv.precio,moneda:pv.moneda,iva:pv.iva,tiempoEntrega:pv.tiempoEntrega,createdAt:original.createdAt||nowISO(),updatedAt:nowISO(),estructura:'ERP_COMPRAS_V4_PRODUCTOS_C2',schemaVersion:2};
-  if(id)products=products.map(x=>x.id===id?obj:x);else products.push(obj);await put('products',obj);if(id)await syncInventoryProductSnapshot(obj);await logAudit(id?'EDITAR':'CREAR',`${obj.codigo} · ${obj.nombre}`,obj.id,'Productos');closeModal();renderAll();go('productos');toast('Producto guardado: '+obj.codigo)
+  // C14.5.4.24: al completar una ficha heredada del inventario, se actualiza el producto existente y nunca se crea una segunda fila.
+  // También sanea duplicados previos que compartan código maestro u operativo, conservando como canónico el registro que se está editando.
+  const sameIdentity=x=>String(x.id)!==String(obj.id)&&((obj.codigo&&String(x.codigo||'').trim().toUpperCase()===String(obj.codigo).trim().toUpperCase())||(obj.codigoOperativo&&String(x.codigoOperativo||'').trim().toUpperCase()===String(obj.codigoOperativo).trim().toUpperCase()));
+  const duplicates=products.filter(sameIdentity);
+  products=products.filter(x=>!sameIdentity(x));
+  const currentIndex=products.findIndex(x=>x.id===obj.id);
+  if(currentIndex>=0)products[currentIndex]=obj;else products.push(obj);
+  await put('products',obj);
+  for(const dup of duplicates)await del('products',dup.id);
+  await syncInventoryProductSnapshot(obj);
+  if(duplicates.length)await logAudit('CONSOLIDAR',`${obj.codigo} · ${obj.nombre} · ${duplicates.length} duplicado(s) absorbido(s)`,obj.id,'Productos');
+  await logAudit(id?'EDITAR':'CREAR',`${obj.codigo} · ${obj.nombre}`,obj.id,'Productos');closeModal();renderAll();go('productos');toast(duplicates.length?'Producto actualizado y duplicado consolidado: '+obj.codigo:'Producto guardado: '+obj.codigo)
  }catch(e){console.error(e);toast('Error al guardar producto')}finally{savingProduct=false;if(btn){btn.disabled=false;btn.textContent='Guardar producto'}}
 }
 async function deleteProduct(id){if(!requireWrite('productos','eliminar productos'))return;const p=products.find(x=>x.id===id);if(!p)return;if(!confirm(`¿Eliminar definitivamente ${p.codigo} · ${p.nombre}?`))return;products=products.filter(x=>x.id!==id);await del('products',id);await logAudit('ELIMINAR',`${p.codigo} · ${p.nombre}`,id,'Productos');closeModal();renderAll();go('productos');toast('Producto eliminado')}
@@ -2828,7 +2839,7 @@ function productReportRows(from,to){
    const physical=endsToday?currentPhysical:saldoERP;
    const adjustment=physical-saldoERP;
    const finalOfficial=saldoERP+adjustment;
-   rows.push({codigoMaestro:p.codigo||p.codigoMaestro||g.codigoMaestro||'',codigoOperativo:p.codigoOperativo||g.codigoOperativo||'',producto:p.nombre||p.nombreGeneral||g.nombre||'',unidad:unit,opening,cost,valueOpening:opening*cost,entryHistorical,entryPeriod,totalEntry,valueEntry:totalEntry*cost,consumption,costConsumption:consumption*cost,saldoERP,adjustment,finalOfficial,valueFinal:finalOfficial*cost,physical,movCount})
+   rows.push({codigoMaestro:p.codigo||p.codigoMaestro||g.codigoMaestro||'',codigoOperativo:p.codigoOperativo||g.codigoOperativo||'',producto:p.nombre||p.nombreGeneral||g.nombre||'',area:p.areaUso||p.areaDestino||'',unidad:unit,opening,cost,valueOpening:opening*cost,entryHistorical,entryPeriod,totalEntry,valueEntry:totalEntry*cost,consumption,costConsumption:consumption*cost,saldoERP,adjustment,finalOfficial,valueFinal:finalOfficial*cost,physical,movCount})
  }
  return rows.sort((a,b)=>String(a.producto).localeCompare(String(b.producto),'es'))
 }
@@ -2848,9 +2859,9 @@ function generateInventoryManagementReport(){
  const from=$('mgr_from')?.value||'',to=$('mgr_to')?.value||'';if(!from||!to){toast('Seleccione fecha desde y fecha hasta');return}if(from>to){toast('La fecha desde no puede ser posterior a la fecha hasta');return}
  const rows=productReportRows(from,to),moves=inventoryAllMovements().filter(m=>{const d=String(m.fecha||'').slice(0,10);return d&&d>=from&&d<=to}),lots=operationalInventoryRows();
  let totalOpening=0,totalEntryValue=0,totalConsumed=0,totalFinalValue=0;for(const r of rows){totalOpening+=r.valueOpening;totalEntryValue+=r.valueEntry;totalConsumed+=r.costConsumption;totalFinalValue+=r.valueFinal}
- const headers=['Código maestro','Código operativo','Producto','Unidad','Saldo anterior','Costo unitario USD','Valor saldo anterior USD','Entrada histórica','Entrada período','Total entradas','Valor entradas USD','Consumo período','Costo consumo USD','Saldo según ERP','Ajuste físico / histórico','Saldo final oficial','Valor stock final USD','Saldo físico','N.º movimientos'];
- const detailRows=[['REPORTE GERENCIAL DE INVENTARIO POR PERÍODO'],['Período',`${from} a ${to}`],headers,...rows.map(r=>[r.codigoMaestro,r.codigoOperativo,r.producto,r.unidad,r.opening,r.cost,r.valueOpening,r.entryHistorical,r.entryPeriod,r.totalEntry,r.valueEntry,r.consumption,r.costConsumption,r.saldoERP,r.adjustment,r.finalOfficial,r.valueFinal,r.physical,r.movCount])];
- const detailStyles={1:[1],3:Array(headers.length).fill(2)};for(let rn=4;rn<=detailRows.length;rn++){detailStyles[rn]=Array(headers.length).fill(0);for(const ci of [4,5,6,7,8,9,10,11,12,13,17])detailStyles[rn][ci]=ci===5||ci===6||ci===10||ci===12?4:3;detailStyles[rn][14]=5;detailStyles[rn][15]=6;detailStyles[rn][16]=7}
+ const headers=['Código maestro','Código operativo','Producto','Área solicitante / uso','Unidad','Saldo anterior','Costo unitario USD','Valor saldo anterior USD','Entrada histórica','Entrada período','Total entradas','Valor entradas USD','Consumo período','Costo consumo USD','Saldo según ERP','Ajuste físico / histórico','Saldo final oficial','Valor stock final USD','Saldo físico','N.º movimientos'];
+ const detailRows=[['REPORTE GERENCIAL DE INVENTARIO POR PERÍODO'],['Período',`${from} a ${to}`],headers,...rows.map(r=>[r.codigoMaestro,r.codigoOperativo,r.producto,r.area,r.unidad,r.opening,r.cost,r.valueOpening,r.entryHistorical,r.entryPeriod,r.totalEntry,r.valueEntry,r.consumption,r.costConsumption,r.saldoERP,r.adjustment,r.finalOfficial,r.valueFinal,r.physical,r.movCount])];
+ const detailStyles={1:[1],3:Array(headers.length).fill(2)};for(let rn=4;rn<=detailRows.length;rn++){detailStyles[rn]=Array(headers.length).fill(0);for(const ci of [5,6,7,8,9,10,11,12,13,14,18])detailStyles[rn][ci]=ci===6||ci===7||ci===11||ci===13?4:3;detailStyles[rn][15]=5;detailStyles[rn][16]=6;detailStyles[rn][17]=7}
  const summaryRows=[['RESUMEN EJECUTIVO'],['Período',`${from} a ${to}`],['Indicador','Valor'],['Productos reportados',rows.length],['Valor saldo inicial USD',totalOpening],['Valor entradas del período USD',totalEntryValue],['Costo consumido del período USD',totalConsumed],['Valor stock final USD',totalFinalValue],['Movimientos del período',moves.length]];
  const summaryStyles={1:[1],3:[2,2],4:[0,6],5:[0,7],6:[0,7],7:[0,7],8:[0,7],9:[0,6]};
  const moveRows=[['Fecha','Tipo','OT','Responsable','Área / Ensayo','Código','Producto','Lote','Cantidad / Consumo','Detalle'],...moves.map(m=>[String(m.fecha||'').slice(0,19),m.tipo||'',m.ot||'',m.responsable||m.usuario||'',m.area||m.ensayo||'',m.codigoOperativo||'',m.productoNombre||'',m.lotePSI||'',inventoryMoveQty(m),m.motivo||m.detalle||''])];
@@ -2858,7 +2869,7 @@ function generateInventoryManagementReport(){
  const lotRows=[['Código','Producto','Lote PSI','Lote proveedor','Fecha ingreso','Caducidad','Ubicación','Saldo actual','Unidad','Estado'],...lots.map(x=>[x.codigoOperativo||x.productoCodigo||'',x.productoNombre||'',x.lotePSI||'',x.loteProveedor||'',inventoryEntryDate(x),x.caducidad||'',x.ubicacion||'',inventoryCurrentValue(x),inventoryStockUnit(x),x.estado||''])];
  const lotStyles={1:Array(10).fill(2)};for(let rn=2;rn<=lotRows.length;rn++){lotStyles[rn]=Array(10).fill(0);lotStyles[rn][7]=3}
  const sheets=[
-  {name:'Inventario Gerencial',rows:detailRows,options:{widths:[15,16,32,11,14,16,18,15,15,15,17,15,17,15,18,16,18,14,14],merges:['A1:S1'],freezeRows:3,autoFilter:`A3:S${detailRows.length}`,styleRows:detailStyles}},
+  {name:'Inventario Gerencial',rows:detailRows,options:{widths:[15,16,32,22,11,14,16,18,15,15,15,17,15,17,15,18,16,18,14,14],merges:['A1:T1'],freezeRows:3,autoFilter:`A3:T${detailRows.length}`,styleRows:detailStyles}},
   {name:'Resumen Ejecutivo',rows:summaryRows,options:{widths:[34,24],merges:['A1:B1'],styleRows:summaryStyles}},
   {name:'Movimientos Periodo',rows:moveRows,options:{widths:[20,18,20,24,22,16,32,18,20,45],freezeRows:1,autoFilter:`A1:J${moveRows.length}`,styleRows:moveStyles}},
   {name:'Lotes',rows:lotRows,options:{widths:[16,32,18,18,14,14,25,16,12,16],freezeRows:1,autoFilter:`A1:J${lotRows.length}`,styleRows:lotStyles}}
