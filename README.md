@@ -1,5 +1,17 @@
-# ERP COMPRAS V4.0.0-C14.5.4.25 — BÚSQUEDA Y ORDENAMIENTO UNIVERSAL DE OC
+# ERP COMPRAS V4.0.0-C14.5.4.26 — CORRECCIÓN TRAZABLE DE PROVEEDOR EN OC
 
+
+
+## Mejora C14.5.4.26
+
+- Permite corregir el proveedor de una OC **Emitida** únicamente si todavía no existe recepción.
+- Requiere contraseña **CALIDAD** y motivo obligatorio.
+- Mantiene el mismo número de OC y crea una **revisión** (Rev. 1, Rev. 2...).
+- Conserva proveedor/cotización originales y firmas anteriores dentro del historial de correcciones.
+- Si había firmas vigentes, se invalidan para el documento actualizado y se exige firmar nuevamente.
+- El PDF muestra la revisión vigente y el motivo de la última corrección.
+- También permite corregir datos dependientes del proveedor: RUC, contacto, correo, condición de pago, plazo y referencia visible de cotización.
+- La función queda bloqueada desde la primera recepción para no romper trazabilidad de inventario.
 
 ## Mejora C14.5.4.25
 
