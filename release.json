@@ -1,13 +1,18 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.27",
-  "build": "C14.5.4.27",
+  "version": "V4.0.0-C14.5.4.28.1",
+  "build": "C14.5.4.28.1",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-09-04",
   "firebaseProjectId": "psi-kardex",
   "hosting": "netlify",
   "sourceControl": "github",
   "notes": [
+    "Nivel 2 de correo electrónico integrado al flujo de firmas OC mediante Netlify Function + Resend, sin exponer la API key en el navegador.",
+    "Firma 1/2: correo automático a mariaguerrero@psi.com.ec; Firma 2/2: correo automático a jjfrancop22@psi.com.ec y elisaponce@psi.com.ec.",
+    "El endpoint valida la sesión Firebase y limita destinatarios/tipos de evento; usa Idempotency-Key para reducir duplicados.",
+    "La notificación interna continúa funcionando aunque el proveedor de correo falle; el Centro de Notificaciones registra ENVIADO, ERROR_ENVIO o PENDIENTE_CONFIGURACION.",
+    "Para activar producción en Netlify: RESEND_API_KEY, EMAIL_FROM (dominio verificado) y FIREBASE_WEB_API_KEY.",
     "Centro de notificaciones interno para el flujo de firmas de Orden de Compra, sincronizado por Firebase multi-PC.",
     "Al completar Firma 1/2 se genera aviso para mariaguerrero@psi.com.ec con acceso directo a la OC pendiente de autorización.",
     "Al completar Firma 2/2 se genera aviso para jjfrancop22@psi.com.ec y elisaponce@psi.com.ec indicando que la OC quedó autorizada y habilitada para recepción.",
@@ -64,6 +69,7 @@
     "Al alcanzar 5 compras se activa alerta de seguimiento operativo; no altera las evaluaciones formales",
     "Cumplimiento de entrega calculado como referencia objetiva usando fecha OC, plazo pactado y primera recepción",
     "Se conservan las fechas encadenadas editables y la conversión de presentación comercial a inventario",
-    "Maria Elena agregada a Consumo por OT y búsqueda continua sin pérdida de foco."
+    "Maria Elena agregada a Consumo por OT y búsqueda continua sin pérdida de foco.",
+    "Fix Netlify Secret Scan: allowlist exacta de Firebase Web API key pública; secretos de correo siguen solo en variables de entorno."
   ]
 }

@@ -450,7 +450,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.27</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.28.1</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -486,7 +486,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.27';
+const VERSION='V4.0.0-C14.5.4.28.1';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -1584,8 +1584,23 @@ async function createERPNotification({recipientEmail,type,title,message,order,ac
  const dedupe=`${order?.id||''}|${type}|${email}|${stage||''}`;
  const existing=(window.erpNotifications||await getAll('notifications')).find(n=>n.dedupeKey===dedupe);
  if(existing)return;
- const row={id:crypto.randomUUID(),dedupeKey:dedupe,recipientEmail:email,type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readAt:'',archivedAt:'',channelInternal:'ENVIADO',channelEmail:'PREPARADO_NO_ACTIVO',emailPrepared:true,version:VERSION};
+ const row={id:crypto.randomUUID(),dedupeKey:dedupe,recipientEmail:email,type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readAt:'',archivedAt:'',channelInternal:'ENVIADO',channelEmail:'PENDIENTE_ENVIO',emailPrepared:true,emailSentAt:'',emailMessageId:'',emailError:'',version:VERSION};
  await put('notifications',row);window.erpNotifications=window.erpNotifications||[];window.erpNotifications.push(row);refreshNotificationBell();
+ // Nivel 2: el correo es complementario. Si falla, la firma y la notificación interna NO se revierten.
+ try{await sendOrderNotificationEmail(row,order)}catch(e){console.warn('Email OC no enviado',e)}
+}
+async function sendOrderNotificationEmail(n,order){
+ if(!n?.recipientEmail)return false;
+ try{
+  const token=authRuntime?.user?.getIdToken?await authRuntime.user.getIdToken():'';
+  if(!token)throw new Error('Sesión Firebase no disponible');
+  const res=await fetch('/.netlify/functions/send-oc-email',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({notificationId:n.id,dedupeKey:n.dedupeKey,to:n.recipientEmail,type:n.type,title:n.title,message:n.message,orderCode:n.orderCode,orderId:n.orderId,stage:n.stage,actor:n.actor,total:order?orderNotificationSummary(order):''})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
+  n.channelEmail='ENVIADO';n.emailSentAt=nowISO();n.emailMessageId=data.id||'';n.emailError='';await put('notifications',n);refreshNotificationBell();return true;
+ }catch(e){
+  n.channelEmail=String(e?.message||'').includes('EMAIL_NOT_CONFIGURED')?'PENDIENTE_CONFIGURACION':'ERROR_ENVIO';n.emailError=String(e?.message||e).slice(0,300);await put('notifications',n);refreshNotificationBell();return false;
+ }
 }
 async function notifyOrderSignature(o,role,record){
  const actor=record?.nombre||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP';
@@ -1598,7 +1613,7 @@ async function notifyOrderSignature(o,role,record){
 async function markNotificationRead(id,openOrderAfter=false){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;if(!n.readAt){n.readAt=nowISO();await put('notifications',n);refreshNotificationBell()}if(openOrderAfter&&n.orderId){closeModal();go('ordenes');setTimeout(()=>viewOrder(n.orderId),60)}else openNotificationCenter()}
 async function markAllNotificationsRead(){for(const n of visibleNotifications().filter(x=>!x.readAt)){n.readAt=nowISO();await put('notifications',n)}refreshNotificationBell();openNotificationCenter()}
 async function archiveNotification(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;n.archivedAt=nowISO();if(!n.readAt)n.readAt=n.archivedAt;await put('notifications',n);refreshNotificationBell();openNotificationCenter()}
-function openNotificationCenter(){const rows=visibleNotifications();const unread=rows.filter(x=>!x.readAt).length;const body=`<div class="note"><b>🔔 Centro de notificaciones</b><br>Sincronizado por Firebase entre computadoras. El canal interno está activo. El canal de correo queda preparado para una integración posterior y actualmente <b>no envía emails externos</b>.</div><div style="display:flex;gap:8px;justify-content:flex-end;margin:12px 0"><span class="badge ${unread?'warn':'ok'}">${unread} no leída(s)</span>${unread?'<button class="btn" onclick="markAllNotificationsRead()">✓ Marcar todas leídas</button>':''}</div><div class="notifyList">${rows.map(n=>`<div class="notifyItem ${n.readAt?'':'unread'}"><div class="notifyTop"><div><b>${esc(n.title||'Notificación')}</b><div class="notifyMsg">${esc(n.message||'')}</div><div class="notifyMeta">${esc(String(n.createdAt||'').replace('T',' ').slice(0,19))} · Interna: ${esc(n.channelInternal||'ENVIADO')} · Email: ${esc(n.channelEmail||'PREPARADO_NO_ACTIVO')}</div></div><span class="badge ${n.readAt?'ok':'warn'}">${n.readAt?'LEÍDA':'NUEVA'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${n.orderId?`<button class="btn blue" onclick="markNotificationRead('${n.id}',true)">Ver OC ${esc(n.orderCode||'')}</button>`:''}${!n.readAt?`<button class="btn" onclick="markNotificationRead('${n.id}')">Marcar leída</button>`:''}<button class="btn" onclick="archiveNotification('${n.id}')">Archivar</button></div></div>`).join('')||'<div class="empty">No tiene notificaciones en este momento.</div>'}</div>`;openModal('🔔 Notificaciones del ERP',body,'<button class="btn" onclick="closeModal()">Cerrar</button>')}
+function openNotificationCenter(){const rows=visibleNotifications();const unread=rows.filter(x=>!x.readAt).length;const body=`<div class="note"><b>🔔 Centro de notificaciones</b><br>Sincronizado por Firebase entre computadoras. El canal interno está activo. El <b>Nivel 2 por correo</b> también se ejecuta al firmar; su estado se muestra en cada aviso. Para producción requiere configurar RESEND_API_KEY y EMAIL_FROM en Netlify.</div><div style="display:flex;gap:8px;justify-content:flex-end;margin:12px 0"><span class="badge ${unread?'warn':'ok'}">${unread} no leída(s)</span>${unread?'<button class="btn" onclick="markAllNotificationsRead()">✓ Marcar todas leídas</button>':''}</div><div class="notifyList">${rows.map(n=>`<div class="notifyItem ${n.readAt?'':'unread'}"><div class="notifyTop"><div><b>${esc(n.title||'Notificación')}</b><div class="notifyMsg">${esc(n.message||'')}</div><div class="notifyMeta">${esc(String(n.createdAt||'').replace('T',' ').slice(0,19))} · Interna: ${esc(n.channelInternal||'ENVIADO')} · Email: ${esc(n.channelEmail||'PENDIENTE_ENVIO')}</div></div><span class="badge ${n.readAt?'ok':'warn'}">${n.readAt?'LEÍDA':'NUEVA'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${n.orderId?`<button class="btn blue" onclick="markNotificationRead('${n.id}',true)">Ver OC ${esc(n.orderCode||'')}</button>`:''}${!n.readAt?`<button class="btn" onclick="markNotificationRead('${n.id}')">Marcar leída</button>`:''}<button class="btn" onclick="archiveNotification('${n.id}')">Archivar</button></div></div>`).join('')||'<div class="empty">No tiene notificaciones en este momento.</div>'}</div>`;openModal('🔔 Notificaciones del ERP',body,'<button class="btn" onclick="closeModal()">Cerrar</button>')}
 
 function orderSignatureStage(o){const f=o?.firmas||{};return f.autorizado?2:f.aprobado?1:0}
 function orderSignatureBadge(o){const s=orderSignatureStage(o);return s===2?'<span class="badge ok">🔒 Firmado 2/2</span>':s===1?'<span class="badge warn">✍ Firmado 1/2</span>':'<span class="badge blue">Firma pendiente</span>'}

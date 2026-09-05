@@ -1,5 +1,6 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/*"
@@ -20,3 +21,11 @@
   for = "/release.json"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+# C14.5.4.28.1
+# Firebase Web API keys are public client identifiers by design. Netlify Smart
+# Secret Detection may flag the `AIza...` client key embedded in index.html as a
+# probable secret. Allowlist ONLY this exact public value; server secrets remain
+# protected and must continue to live in Netlify environment variables.
+[build.environment]
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyDm-KI4AsEZJRRwSonJPdpREBPPTApuGrA"

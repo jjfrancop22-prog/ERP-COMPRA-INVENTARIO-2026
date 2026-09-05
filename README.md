@@ -61,3 +61,21 @@ La IA sigue siendo local: no envía información fuera del ERP y no modifica dat
 - Colección Firestore `notifications` sincronizada multi-PC.
 - Canal de correo dejado como `PREPARADO_NO_ACTIVO`; no envía correo externo hasta conectar un proveedor/servicio de email.
 - Publicar `firestore.rules` actualizado antes de usar las notificaciones en producción.
+
+
+## C14.5.4.28 · Nivel 2 por correo
+El envío externo se realiza desde `netlify/functions/send-oc-email.js`; la clave de Resend nunca se guarda en `index.html`.
+
+Variables requeridas en Netlify (Site configuration → Environment variables):
+- `RESEND_API_KEY`: API key privada de Resend.
+- `EMAIL_FROM`: remitente de un dominio verificado, por ejemplo `ERP Compras PSI <notificaciones@psi.com.ec>`.
+- `FIREBASE_WEB_API_KEY`: API key web del proyecto Firebase `psi-kardex` (la misma que usa el ERP).
+
+Después de guardar las variables, realizar un nuevo deploy. La Firma 1/2 enviará a María Guerrero y la Firma 2/2 a Jipson/Elisa. Si el correo falla, la firma y la campana interna permanecen válidas y el error queda visible en el estado Email.
+
+
+## C14.5.4.28.1 · Corrección de despliegue Netlify
+- Corrige el falso positivo de Netlify Secret Scan sobre la Firebase Web API key pública (`AIza...`).
+- Se permite únicamente ese valor público mediante `SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES`.
+- `RESEND_API_KEY`, `EMAIL_FROM` y `FIREBASE_WEB_API_KEY` para la función de correo continúan fuera del código y deben configurarse como variables de entorno en Netlify cuando se active el correo.
+- El correo sigue siendo opcional: si no está configurado, la firma y las notificaciones internas continúan operativas.
