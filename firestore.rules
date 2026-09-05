@@ -76,6 +76,16 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // C14.5.4.27 Notificaciones internas de flujo OC.
+    // Cualquier usuario activo puede crear eventos; la lectura operativa permite sincronización multi-PC.
+    // Solo el destinatario (por email autenticado) o Administrador puede marcar/archivar su notificación.
+    match /notifications/{id} {
+      allow read: if operationalReader();
+      allow create: if active();
+      allow update: if active() && (isAdmin() || resource.data.recipientEmail == request.auth.token.email);
+      allow delete: if isAdmin();
+    }
+
     // Documento de prueba/conexión del ERP
     match /erpSystem/{id} {
       allow read: if signedIn();

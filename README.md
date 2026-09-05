@@ -1,8 +1,8 @@
-# ERP COMPRAS V4.0.0-C14.5.4.26 — CORRECCIÓN TRAZABLE DE PROVEEDOR EN OC
+# ERP COMPRAS V4.0.0-C14.5.4.27 — CORRECCIÓN TRAZABLE DE PROVEEDOR EN OC
 
 
 
-## Mejora C14.5.4.26
+## Mejora C14.5.4.27
 
 - Permite corregir el proveedor de una OC **Emitida** únicamente si todavía no existe recepción.
 - Requiere contraseña **CALIDAD** y motivo obligatorio.
@@ -52,3 +52,23 @@
 ## Seguridad y trazabilidad
 
 La IA sigue siendo local: no envía información fuera del ERP y no modifica datos automáticamente. Las correcciones de inventario requieren contraseña de Calidad y dejan evidencia antes/después en auditoría.
+
+
+## C14.5.4.27 · Notificaciones de firma OC
+- Firma 1/2 crea notificación interna para `mariaguerrero@psi.com.ec`.
+- Firma 2/2 crea notificación interna para `jjfrancop22@psi.com.ec` y `elisaponce@psi.com.ec`.
+- Campana 🔔 con contador de no leídas, acceso directo a la OC, marcar leída y archivar.
+- Colección Firestore `notifications` sincronizada multi-PC.
+- Canal de correo dejado como `PREPARADO_NO_ACTIVO`; no envía correo externo hasta conectar un proveedor/servicio de email.
+- Publicar `firestore.rules` actualizado antes de usar las notificaciones en producción.
+
+
+## C14.5.4.28 · Nivel 2 por correo
+El envío externo se realiza desde `netlify/functions/send-oc-email.js`; la clave de Resend nunca se guarda en `index.html`.
+
+Variables requeridas en Netlify (Site configuration → Environment variables):
+- `RESEND_API_KEY`: API key privada de Resend.
+- `EMAIL_FROM`: remitente de un dominio verificado, por ejemplo `ERP Compras PSI <notificaciones@psi.com.ec>`.
+- `FIREBASE_WEB_API_KEY`: API key web del proyecto Firebase `psi-kardex` (la misma que usa el ERP).
+
+Después de guardar las variables, realizar un nuevo deploy. La Firma 1/2 enviará a María Guerrero y la Firma 2/2 a Jipson/Elisa. Si el correo falla, la firma y la campana interna permanecen válidas y el error queda visible en el estado Email.
