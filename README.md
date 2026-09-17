@@ -85,3 +85,6 @@ Después de guardar las variables, realizar un nuevo deploy. La Firma 1/2 enviar
 - Cada firma registrada en una Orden de Compra genera notificación interna para Jipson, Elisa Ponce y Maria Guerrero.
 - El aviso muestra número de OC, nombre real del firmante y etapa 1/2 o 2/2.
 - Una OC corregida y firmada nuevamente vuelve a notificar correctamente.
+
+
+HOTFIX C14.5.4.31.1: apertura IndexedDB adaptativa anti-VersionError; conserva base existente, evita downgrade y corrige pantalla blanca/login 'No se pudo iniciar la base local'. Cache PWA incrementada.

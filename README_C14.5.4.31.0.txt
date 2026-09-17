@@ -6,3 +6,6 @@ C14.5.4.31.0
 - Eventos: OC generada, firma 1/2, firma 2/2, descarga/impresión e ingreso a inventario.
 - BOTS se refresca con cambios Firestore y usa datos canónicos sincronizados.
 - Cache PWA incrementada para forzar actualización.
+
+
+HOTFIX C14.5.4.31.1: apertura IndexedDB adaptativa anti-VersionError; conserva base existente, evita downgrade y corrige pantalla blanca/login 'No se pudo iniciar la base local'. Cache PWA incrementada.

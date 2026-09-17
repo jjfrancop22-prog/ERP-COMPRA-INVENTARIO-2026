@@ -452,7 +452,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.31.0</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.31.1</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -488,7 +488,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.31.0';
+const VERSION='V4.0.0-C14.5.4.31.1';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -581,7 +581,18 @@ function ratingSelect(id,current){return `<select id="${id}"><option value="0">S
 function nextCode(){let max=0;for(const p of providers){const m=String(p.codigo||'').match(/^PRV-(\d+)$/);if(m)max=Math.max(max,Number(m[1]))}return 'PRV-'+String(max+1).padStart(6,'0')}
 
 const DB_NAME='ERP_COMPRAS_V4';const DB_VERSION=15;let dbPromise;
-function db(){if(dbPromise)return dbPromise;dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('providers'))d.createObjectStore('providers',{keyPath:'id'});if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('requests'))d.createObjectStore('requests',{keyPath:'id'});if(!d.objectStoreNames.contains('quotations'))d.createObjectStore('quotations',{keyPath:'id'});if(!d.objectStoreNames.contains('orders'))d.createObjectStore('orders',{keyPath:'id'});if(!d.objectStoreNames.contains('receptions'))d.createObjectStore('receptions',{keyPath:'id'});if(!d.objectStoreNames.contains('inventory'))d.createObjectStore('inventory',{keyPath:'id'});if(!d.objectStoreNames.contains('technicalServices'))d.createObjectStore('technicalServices',{keyPath:'id'});if(!d.objectStoreNames.contains('invoices'))d.createObjectStore('invoices',{keyPath:'id'});if(!d.objectStoreNames.contains('payables'))d.createObjectStore('payables',{keyPath:'id'});if(!d.objectStoreNames.contains('payments'))d.createObjectStore('payments',{keyPath:'id'});if(!d.objectStoreNames.contains('supplierEvaluations'))d.createObjectStore('supplierEvaluations',{keyPath:'id'});if(!d.objectStoreNames.contains('audit'))d.createObjectStore('audit',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('syncOutbox'))d.createObjectStore('syncOutbox',{keyPath:'id'});if(!d.objectStoreNames.contains('syncMeta'))d.createObjectStore('syncMeta',{keyPath:'key'});if(!d.objectStoreNames.contains('syncConflicts'))d.createObjectStore('syncConflicts',{keyPath:'id'});if(!d.objectStoreNames.contains('syncInbox'))d.createObjectStore('syncInbox',{keyPath:'id'});if(!d.objectStoreNames.contains('syncTombstones'))d.createObjectStore('syncTombstones',{keyPath:'id'});if(!d.objectStoreNames.contains('users'))d.createObjectStore('users',{keyPath:'id'});if(!d.objectStoreNames.contains('notifications'))d.createObjectStore('notifications',{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});return dbPromise}
+const DB_REQUIRED_STORES=['providers','products','requests','quotations','orders','receptions','inventory','technicalServices','invoices','payables','payments','supplierEvaluations','audit','meta','syncOutbox','syncMeta','syncConflicts','syncInbox','syncTombstones','users','notifications'];
+function ensureDbStores(d){for(const name of DB_REQUIRED_STORES)if(!d.objectStoreNames.contains(name))d.createObjectStore(name,{keyPath:name==='meta'||name==='syncMeta'?'key':'id'})}
+function openDbAt(version){return new Promise((resolve,reject)=>{const req=version?indexedDB.open(DB_NAME,version):indexedDB.open(DB_NAME);req.onupgradeneeded=e=>ensureDbStores(e.target.result);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('IndexedDB no disponible'));req.onblocked=()=>console.warn('IndexedDB bloqueada por otra pestaña/PWA abierta')})}
+function db(){if(dbPromise)return dbPromise;dbPromise=(async()=>{
+ // Apertura adaptativa: nunca intenta bajar la versión de una base ya existente.
+ // Esto evita VersionError al actualizar la PWA y conserva todos los datos locales.
+ let d=await openDbAt();
+ const missing=DB_REQUIRED_STORES.filter(name=>!d.objectStoreNames.contains(name));
+ if(!missing.length){d.onversionchange=()=>d.close();return d}
+ const nextVersion=Math.max(Number(d.version)||1,DB_VERSION)+1;d.close();
+ d=await openDbAt(nextVersion);d.onversionchange=()=>d.close();return d
+})().catch(err=>{dbPromise=null;throw err});return dbPromise}
 async function getAll(store){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(store,'readonly').objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
 
 const AUDIT_STORE_MODULE={
@@ -1595,7 +1606,7 @@ async function createERPNotification({recipientEmail,type,title,message,order,ac
  const pool=window.erpNotifications||await getAll('notifications');
  const existing=pool.find(n=>n.dedupeKey===dedupe||n.globalDedupeKey===dedupe);
  if(existing)return existing;
- const row={id:crypto.randomUUID(),dedupeKey:dedupe,globalDedupeKey:dedupe,recipientEmail:'*',audience:'ALL_AUTHORIZED_USERS',type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',eventKey:eventKey||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readBy:{},archivedBy:{},channelInternal:'FIREBASE_GLOBAL',channelEmail:'NO_REQUERIDO',emailPrepared:false,emailSentAt:'',emailMessageId:'',emailError:'',productId:productId||'',actionType:actionType||'',meta:meta||{},version:'C14.5.4.31.0'};
+ const row={id:crypto.randomUUID(),dedupeKey:dedupe,globalDedupeKey:dedupe,recipientEmail:'*',audience:'ALL_AUTHORIZED_USERS',type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',eventKey:eventKey||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readBy:{},archivedBy:{},channelInternal:'FIREBASE_GLOBAL',channelEmail:'NO_REQUERIDO',emailPrepared:false,emailSentAt:'',emailMessageId:'',emailError:'',productId:productId||'',actionType:actionType||'',meta:meta||{},version:'C14.5.4.31.1'};
  await put('notifications',row);window.erpNotifications=window.erpNotifications||[];window.erpNotifications.push(row);refreshNotificationBell();deliverInternalBrowserNotification(row).catch(()=>{});return row;
 }
 async function sendOrderNotificationEmail(n,order){
