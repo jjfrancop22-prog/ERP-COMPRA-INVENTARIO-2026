@@ -3,7 +3,7 @@ const ALLOWED_RECIPIENTS = new Set([
   'jjfrancop22@psi.com.ec',
   'elisaponce@psi.com.ec'
 ]);
-const ALLOWED_TYPES = new Set(['OC_FIRMA_1_PENDIENTE','OC_FIRMA_2_COMPLETA']);
+const ALLOWED_TYPES = new Set(['OC_FIRMA_1_PENDIENTE','OC_FIRMA_2_COMPLETA','OC_GENERADA','OC_DESCARGADA']);
 
 exports.handler = async (event) => {
   const headers={'Content-Type':'application/json','Cache-Control':'no-store'};
@@ -25,9 +25,9 @@ exports.handler = async (event) => {
     const actor=String(body.actor||'Usuario ERP').replace(/[<>]/g,'');
     const msg=String(body.message||'').replace(/[<>]/g,'');
     const total=String(body.total||'').replace(/[<>]/g,'');
-    const isPending=body.type==='OC_FIRMA_1_PENDIENTE';
-    const subject=isPending?`PSI · ${code} pendiente de Firma 2/2`:`PSI · ${code} autorizada 2/2`;
-    const html=`<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#172033"><h2>${isPending?'✍️ OC pendiente de autorización':'✅ OC autorizada'}</h2><p>${msg}</p><table style="border-collapse:collapse;width:100%"><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Orden</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${code}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Etapa</b></td><td style="padding:8px;border-bottom:1px solid #ddd">Firma ${body.stage||''}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Responsable</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${actor}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Resumen</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${total}</td></tr></table><p style="margin-top:20px">Ingrese al ERP Compras PSI para revisar la orden y su trazabilidad.</p><p style="font-size:12px;color:#667085">Mensaje automático del ERP Compras PSI. No sustituye la firma digital registrada en el sistema.</p></div>`;
+    const isPending=body.type==='OC_FIRMA_1_PENDIENTE'; const isGenerated=body.type==='OC_GENERADA'; const isDownload=body.type==='OC_DESCARGADA';
+    const subject=isPending?`PSI · ${code} pendiente de Firma 2/2`:isGenerated?`PSI · ${code} generada`:isDownload?`PSI · ${code} descargada / impresa`:`PSI · ${code} autorizada 2/2`;
+    const html=`<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#172033"><h2>${isPending?'✍️ OC pendiente de autorización':isGenerated?'🧾 OC generada':isDownload?'⬇ OC descargada / impresa':'✅ OC autorizada'}</h2><p>${msg}</p><table style="border-collapse:collapse;width:100%"><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Orden</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${code}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Etapa</b></td><td style="padding:8px;border-bottom:1px solid #ddd">Firma ${body.stage||''}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Responsable</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${actor}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #ddd"><b>Resumen</b></td><td style="padding:8px;border-bottom:1px solid #ddd">${total}</td></tr></table><p style="margin-top:20px">Ingrese al ERP Compras PSI para revisar la orden y su trazabilidad.</p><p style="font-size:12px;color:#667085">Mensaje automático del ERP Compras PSI. No sustituye la firma digital registrada en el sistema.</p></div>`;
     const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${apiKey}`,'Content-Type':'application/json','User-Agent':'ERP-Compras-PSI/1.0','Idempotency-Key':String(body.dedupeKey||body.notificationId||Date.now()).slice(0,256)},body:JSON.stringify({from,to:[to],subject,html})});
     const out=await r.json();
     if(!r.ok) return {statusCode:502,headers,body:JSON.stringify({error:out.message||out.name||'No se pudo enviar el correo'})};

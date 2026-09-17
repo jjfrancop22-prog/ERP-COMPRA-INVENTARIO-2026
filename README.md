@@ -79,3 +79,9 @@ Después de guardar las variables, realizar un nuevo deploy. La Firma 1/2 enviar
 - Se permite únicamente ese valor público mediante `SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES`.
 - `RESEND_API_KEY`, `EMAIL_FROM` y `FIREBASE_WEB_API_KEY` para la función de correo continúan fuera del código y deben configurarse como variables de entorno en Netlify cuando se active el correo.
 - El correo sigue siendo opcional: si no está configurado, la firma y las notificaciones internas continúan operativas.
+
+
+## C14.5.4.28.2 · Campana de firma OC
+- Cada firma registrada en una Orden de Compra genera notificación interna para Jipson, Elisa Ponce y Maria Guerrero.
+- El aviso muestra número de OC, nombre real del firmante y etapa 1/2 o 2/2.
+- Una OC corregida y firmada nuevamente vuelve a notificar correctamente.
