@@ -1,7 +1,7 @@
 {
   "schema": "ERP_COMPRAS_PWA_RELEASE_V1",
-  "version": "V4.0.0-C14.5.4.32.1",
-  "build": "C14.5.4.32.1",
+  "version": "V4.0.0-C14.5.4.32.2",
+  "build": "C14.5.4.32.2",
   "channel": "stable-netlify-production",
   "releasedAt": "2026-09-18",
   "firebaseProjectId": "psi-kardex",
@@ -9,7 +9,7 @@
   "sourceControl": "github",
   "notes": [
     "BOTS IA predictivo de stock: proyecta días hasta agotamiento usando consumos OT reales de hasta 90 días, con mayor peso a los últimos 30 días.",
-    "Reposición IA calcula compra para sostener al menos 30 días de operación más el stock mínimo de seguridad, respetando además punto de pedido/stock máximo cuando corresponda.",
+    "Reposición IA calcula la compra para recuperar una cobertura operativa objetivo de 30–35 días (32 días como centro), sin sumar stock mínimo ni punto de pedido; estos quedan únicamente como disparadores de alerta.",
     "Alertas de stock muestran consumo diario/mensual estimado, fecha aproximada de agotamiento, urgencia, cantidad sugerida y cobertura posterior a la compra.",
     "Hotfix campana C14.5.4.31.0: reconoce la cuenta operativa jjfrancop22@hotmail.com como alias de jjfrancop22@psi.com.ec, evitando campana vacía al iniciar con Hotmail.",
     "Reconciliación automática de eventos: al conectar Firebase reconstruye de forma idempotente avisos faltantes de OC generada, Firma 1/2 y Firma 2/2 para OC existentes.",

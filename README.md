@@ -88,3 +88,9 @@ Después de guardar las variables, realizar un nuevo deploy. La Firma 1/2 enviar
 
 
 HOTFIX C14.5.4.31.1: apertura IndexedDB adaptativa anti-VersionError; conserva base existente, evita downgrade y corrige pantalla blanca/login 'No se pudo iniciar la base local'. Cache PWA incrementada.
+
+
+## C14.5.4.32.2
+- Reposición IA por cobertura operativa de 30–35 días (objetivo central 32 días).
+- Stock mínimo y punto de pedido se usan para alertar, no se suman a la compra sugerida.
+- Redondeo a presentaciones completas; si esto supera 35 días, BOTS IA lo explica.

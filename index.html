@@ -452,7 +452,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.32.1</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.32.2</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn aiBell" id="aiBellBtn" title="Alertas inteligentes" onclick="go('alertas')">🤖<span class="aiBellCount" id="aiBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -488,7 +488,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.32.1';
+const VERSION='V4.0.0-C14.5.4.32.2';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['alertas','Alertas','!',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -1607,7 +1607,7 @@ async function createERPNotification({recipientEmail,type,title,message,order,ac
  const pool=window.erpNotifications||await getAll('notifications');
  const existing=pool.find(n=>n.dedupeKey===dedupe||n.globalDedupeKey===dedupe);
  if(existing)return existing;
- const row={id:crypto.randomUUID(),dedupeKey:dedupe,globalDedupeKey:dedupe,recipientEmail:'*',audience:'ALL_AUTHORIZED_USERS',type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',eventKey:eventKey||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readBy:{},archivedBy:{},channelInternal:'FIREBASE_GLOBAL',channelEmail:'NO_REQUERIDO',emailPrepared:false,emailSentAt:'',emailMessageId:'',emailError:'',productId:productId||'',actionType:actionType||'',meta:meta||{},version:'C14.5.4.32.1'};
+ const row={id:crypto.randomUUID(),dedupeKey:dedupe,globalDedupeKey:dedupe,recipientEmail:'*',audience:'ALL_AUTHORIZED_USERS',type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',eventKey:eventKey||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readBy:{},archivedBy:{},channelInternal:'FIREBASE_GLOBAL',channelEmail:'NO_REQUERIDO',emailPrepared:false,emailSentAt:'',emailMessageId:'',emailError:'',productId:productId||'',actionType:actionType||'',meta:meta||{},version:'C14.5.4.32.2'};
  await put('notifications',row);window.erpNotifications=window.erpNotifications||[];window.erpNotifications.push(row);refreshNotificationBell();deliverInternalBrowserNotification(row).catch(()=>{});return row;
 }
 async function sendOrderNotificationEmail(n,order){
@@ -2839,7 +2839,7 @@ function invSetMasterSearch(v,pos){
 function invToggleProduct(k){inventoryMasterOpen=inventoryMasterOpen===k?'':k;renderInventory()}
 function inventoryMasterTabs(){return`<div class="invMasterTabs"><button class="invMasterTab ${inventoryMasterTab==='dashboard'?'active':''}" onclick="invSetMasterTab('dashboard')">📊 Dashboard</button><button class="invMasterTab ${inventoryMasterTab==='maestro'?'active':''}" onclick="invSetMasterTab('maestro')">🧪 Inventario maestro</button><button class="invMasterTab ${inventoryMasterTab==='historico'?'active':''}" onclick="invSetMasterTab('historico')">🧾 Ingreso histórico</button><button class="invMasterTab ${inventoryMasterTab==='recepciones'?'active':''}" onclick="invSetMasterTab('recepciones')">🚚 Recepciones pendientes</button><button class="invMasterTab ${inventoryMasterTab==='movimientos'?'active':''}" onclick="invSetMasterTab('movimientos')">📚 Movimientos</button></div>`}
 
-// C14.5.4.32.0 · BOTS IA de abastecimiento predictivo.
+// C14.5.4.32.2 · BOTS IA de abastecimiento predictivo · cobertura operativa 30–35 días.
 // Usa el consumo REAL registrado en Inventario (Consumo OT), con ventana de hasta 90 días.
 // Da mayor peso a los últimos 30 días para reaccionar a cambios recientes sin perder estabilidad.
 function aiConsumptionForecast(g){
@@ -2867,15 +2867,16 @@ function aiReorderSuggestion(g){
  const p=g.product||products.find(x=>x.id===g.productoId)||{};
  const vars=productVariants(p),vi=Math.max(0,vars.findIndex(v=>v.principal));
  const v=vars[vi]||{},factor=Number(v.factorConversion||1)||1,forecast=aiConsumptionForecast(g);
- const safety=Number(g.stockMin||0); // reserva mínima que no se planifica consumir durante el mes de cobertura
- const monthTarget=forecast.hasData?forecast.monthly+safety:0;
- const policyTarget=Math.max(Number(g.puntoPedido||0),Number(g.stockMax||0),Number(g.stockMin||0)*2);
- const target=Math.max(monthTarget,policyTarget,Number(g.total||0)+factor);
+ // La política mínimo/punto de pedido sirve únicamente para DISPARAR la alerta.
+ // La cantidad de compra se calcula de forma independiente para recuperar una cobertura operativa de 30–35 días.
+ // Se usa 32 días como objetivo central y se redondea a presentaciones comerciales completas.
+ const targetDays=32;
+ const target=forecast.hasData?forecast.daily*targetDays:Number(g.puntoPedido||g.stockMin||factor);
  const need=Math.max(0,target-Number(g.total||0)),qty=Math.max(1,Math.ceil(need/factor));
  const projected=Number(g.total||0)+qty*factor;
  const coverageDays=forecast.hasData?projected/forecast.daily:null;
  const leadDays=Math.max(0,Number(v.tiempoEntrega||0));
- return {p,v,vi,factor,target,need,qty,projected,forecast,coverageDays,leadDays};
+ return {p,v,vi,factor,target,targetDays:32,need,qty,projected,forecast,coverageDays,leadDays};
 }
 function aiStockForecastText(g,a){
  const f=a.forecast,dec=g.metodo==='Contable'?0:2;
@@ -2883,7 +2884,7 @@ function aiStockForecastText(g,a){
  const left=Math.max(0,f.daysLeft||0),runout=new Date(Date.now()+left*86400000);
  const date=runout.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
  const urgency=left<=Math.max(7,a.leadDays)?'COMPRA PRIORITARIA':left<=30?'COMPRAR AHORA':'PLANIFICAR COMPRA';
- return `Pronóstico IA: consumo estimado ${f.daily.toFixed(dec)} ${g.unidad}/día (${f.monthly.toFixed(dec)} ${g.unidad}/30 días), basado en ${f.moves} consumo(s) de los últimos ${f.sampleDays} día(s). Al ritmo actual, el stock se agotaría en ≈ ${Math.ceil(left)} día(s), alrededor del ${date}. ${urgency}. Para mantener al menos 30 días operativos + stock mínimo de seguridad, BOTS IA recomienda comprar ${a.qty} presentación(es) (${(a.qty*a.factor).toFixed(dec)} ${g.unidad}); saldo proyectado ${(a.projected).toFixed(dec)} ${g.unidad}, cobertura ≈ ${Math.floor(a.coverageDays||0)} días.`;
+ return `Pronóstico IA: consumo estimado ${f.daily.toFixed(dec)} ${g.unidad}/día (${f.monthly.toFixed(dec)} ${g.unidad}/30 días), basado en ${f.moves} consumo(s) de los últimos ${f.sampleDays} día(s). Al ritmo actual, el stock se agotaría en ≈ ${Math.ceil(left)} día(s), alrededor del ${date}. ${urgency}. Para recuperar una cobertura operativa objetivo de 30–35 días (objetivo central: ${a.targetDays} días), BOTS IA recomienda comprar ${a.qty} presentación(es) (${(a.qty*a.factor).toFixed(dec)} ${g.unidad}); saldo proyectado ${(a.projected).toFixed(dec)} ${g.unidad}, cobertura ≈ ${Math.floor(a.coverageDays||0)} días.${(a.coverageDays||0)>35?' La cobertura supera 35 días únicamente por el redondeo a presentaciones comerciales completas.':''}`;
 }
 function aiReorderRequestForProduct(productId){
  const candidates=requests.filter(r=>r.aiReorderProductId===productId&&r.estado!=='Rechazada').sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
@@ -2922,7 +2923,7 @@ function openAIReorder(productId){
  const g=inventoryGroups().find(x=>x.productoId===productId);if(!g){toast('No se encontró el producto en inventario');return}
  const a=aiReorderSuggestion(g),area=a.p.areaUso||a.p.area||'';
  const forecastNote=aiStockForecastText(g,a);
- window.__aiReorderSeed={aiReorderProductId:productId,aiReorderGenerated:true,prioridad:g.total<=0?'Urgente':(a.forecast.hasData&&a.forecast.daysLeft<=Math.max(7,a.leadDays)?'Urgente':'Alta'),area:REQUEST_AREAS.includes(area)?area:'',justificacion:`Reposición predictiva BOTS IA: stock actual ${g.total.toFixed(g.metodo==='Contable'?0:2)} ${g.unidad}; mínimo ${Number(g.stockMin||0)}; punto de pedido ${Number(g.puntoPedido||0)}. ${forecastNote}`,observaciones:'Generada desde alerta inteligente de inventario. Cantidad propuesta para sostener ≥30 días de operación más el stock mínimo de seguridad. Revisar proveedor y fecha requerida antes de enviar a aprobación.',items:[{productoId:a.p.id,productoCodigo:a.p.codigo||'',codigoOperativo:a.p.codigoOperativo||'',productoNombre:a.p.nombre||g.productoNombre,clasificacion:a.p.clasificacion||'',varianteIndex:a.vi,varianteId:a.v.id||'',marca:a.v.marca||'',presentacion:a.v.presentacion||'',catalogo:a.v.catalogo||'',proveedorId:a.v.proveedor||'',proveedorNombre:providerName(a.v.proveedor||''),precioReferencia:a.v.precio||'',moneda:a.v.moneda||'USD',unidad:a.v.unidadCompra||a.p.unidad||'Unidad',unidadBase:a.v.unidadBase||g.unidad,factorConversion:a.factor,contenidoTotal:a.qty*a.factor,cantidad:a.qty,tiempoEntrega:Number(a.v.tiempoEntrega||0),destinoLogistico:a.p.inventarioDestino||g.destino,metodoInventario:a.p.inventarioMetodo||g.metodo,observacion:`BOTS IA recomienda ${a.qty} presentación(es). ${forecastNote}`}]};
+ window.__aiReorderSeed={aiReorderProductId:productId,aiReorderGenerated:true,prioridad:g.total<=0?'Urgente':(a.forecast.hasData&&a.forecast.daysLeft<=Math.max(7,a.leadDays)?'Urgente':'Alta'),area:REQUEST_AREAS.includes(area)?area:'',justificacion:`Reposición predictiva BOTS IA: stock actual ${g.total.toFixed(g.metodo==='Contable'?0:2)} ${g.unidad}; mínimo ${Number(g.stockMin||0)}; punto de pedido ${Number(g.puntoPedido||0)}. ${forecastNote}`,observaciones:'Generada desde alerta inteligente de inventario. Cantidad propuesta por BOTS IA para recuperar aproximadamente 30–35 días de cobertura operativa, calculada según el consumo histórico y redondeada a presentaciones comerciales completas. El stock mínimo y el punto de pedido funcionan como disparadores de alerta y no se suman a la cantidad a comprar. Revisar proveedor y fecha requerida antes de enviar a aprobación.',items:[{productoId:a.p.id,productoCodigo:a.p.codigo||'',codigoOperativo:a.p.codigoOperativo||'',productoNombre:a.p.nombre||g.productoNombre,clasificacion:a.p.clasificacion||'',varianteIndex:a.vi,varianteId:a.v.id||'',marca:a.v.marca||'',presentacion:a.v.presentacion||'',catalogo:a.v.catalogo||'',proveedorId:a.v.proveedor||'',proveedorNombre:providerName(a.v.proveedor||''),precioReferencia:a.v.precio||'',moneda:a.v.moneda||'USD',unidad:a.v.unidadCompra||a.p.unidad||'Unidad',unidadBase:a.v.unidadBase||g.unidad,factorConversion:a.factor,contenidoTotal:a.qty*a.factor,cantidad:a.qty,tiempoEntrega:Number(a.v.tiempoEntrega||0),destinoLogistico:a.p.inventarioDestino||g.destino,metodoInventario:a.p.inventarioMetodo||g.metodo,observacion:`BOTS IA recomienda ${a.qty} presentación(es). ${forecastNote}`}]};
  closeModal();go('solicitudes');setTimeout(()=>openRequest(),60);
 }
 async function reconcileSmartStockNotifications(){
