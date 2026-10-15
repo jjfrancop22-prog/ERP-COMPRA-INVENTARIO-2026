@@ -1,0 +1,1 @@
+C14.5.4.38: inventario maestro filtra filas precargadas sin recalcular grupos ni reconstruir DOM por pulsación. Otros buscadores conservan mejoras anteriores. Requiere prueba real en navegador y Firebase.
