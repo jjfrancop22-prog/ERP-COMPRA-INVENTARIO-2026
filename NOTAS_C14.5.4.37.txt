@@ -1,0 +1,1 @@
+Corrección transversal: preserva el nodo INPUT enfocado en búsquedas de Proveedores, Productos, Solicitudes, Órdenes, Alertas, CxP, Auditoría e Inventario cuando el módulo reconstruye su HTML. Sin modificaciones a datos Firebase. Probar en navegador y dos equipos.
