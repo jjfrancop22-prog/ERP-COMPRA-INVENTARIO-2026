@@ -1620,7 +1620,7 @@ async function sendOrderNotificationEmail(n,order){
   const res=await fetch('/.netlify/functions/send-oc-email',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({notificationId:n.id,dedupeKey:n.dedupeKey,to:n.recipientEmail,type:n.type,title:n.title,message:n.message,orderCode:n.orderCode,orderId:n.orderId,stage:n.stage,actor:n.actor,total:order?orderNotificationSummary(order):''})});
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
-  n.channelEmail='ENVIADO';n.emailSentAt=nowISO();n.emailMessageId=data.id||'';n.emailError='';await put('notifications',n);refreshNotificationBell();return true;
+  n.channelEmail='ENVIADO';n.emailSentAt=nowISO();n.emailMessageId=data.id||'';n.emailError='';await persistNotificationAcknowledgement(n,'read');refreshNotificationBell();return true;
  }catch(e){
   n.channelEmail=String(e?.message||'').includes('EMAIL_NOT_CONFIGURED')?'PENDIENTE_CONFIGURACION':'ERROR_ENVIO';n.emailError=String(e?.message||e).slice(0,300);await put('notifications',n);refreshNotificationBell();return false;
  }
@@ -1671,9 +1671,19 @@ async function reconcileOrderFlowNotifications(){
  }
  await autoProcessFirebaseOutbox().catch(()=>{});refreshNotificationBell();aiUpdateBell();
 }
+async function persistNotificationAcknowledgement(n,kind){
+ const me=notificationAudience(),stamp=nowISO();
+ // Releer el registro más reciente antes de escribir para conservar estados de otras PC.
+ const current=(await getAll('notifications')).find(x=>x.id===n.id)||n;
+ const merged={...current,readBy:{...(current.readBy||{}),...(n.readBy||{})},archivedBy:{...(current.archivedBy||{}),...(n.archivedBy||{})},completedBy:{...(current.completedBy||{}),...(n.completedBy||{})}};
+ merged.readBy[me]=merged.readBy[me]||stamp;
+ if(kind==='archive')merged.archivedBy[me]=stamp;
+ if(kind==='complete')merged.completedBy[me]=stamp;
+ Object.assign(n,merged);await put('notifications',merged);
+}
 async function markNotificationRead(id,openOrderAfter=false){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.readBy={...(n.readBy||{}),[me]:nowISO()};await put('notifications',n);refreshNotificationBell();if(openOrderAfter&&n.orderId){closeModal();go('ordenes');setTimeout(()=>viewOrder(n.orderId),60)}else openNotificationCenter()}
-async function markAllNotificationsRead(){const me=notificationAudience();for(const n of visibleNotifications().filter(x=>!notificationReadByMe(x))){n.readBy={...(n.readBy||{}),[me]:nowISO()};await put('notifications',n)}refreshNotificationBell();openNotificationCenter()}
-async function archiveNotification(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.archivedBy={...(n.archivedBy||{}),[me]:nowISO()};n.readBy={...(n.readBy||{}),[me]:n.readBy?.[me]||nowISO()};await put('notifications',n);refreshNotificationBell();openNotificationCenter()}
+async function markAllNotificationsRead(){const me=notificationAudience();for(const n of visibleNotifications().filter(x=>!notificationReadByMe(x))){n.readBy={...(n.readBy||{}),[me]:nowISO()};await persistNotificationAcknowledgement(n,'read')}refreshNotificationBell();openNotificationCenter()}
+async function archiveNotification(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.archivedBy={...(n.archivedBy||{}),[me]:nowISO()};n.readBy={...(n.readBy||{}),[me]:n.readBy?.[me]||nowISO()};await persistNotificationAcknowledgement(n,'archive');refreshNotificationBell();openNotificationCenter()}
 function notificationCategory(n){if(String(n.type||'').includes('VENCIMIENTO')||String(n.type||'').includes('CADUCIDAD'))return 'VENCIMIENTOS';if(String(n.type||'').includes('STOCK'))return 'STOCK IA';if(String(n.type||'').includes('FIRMA'))return 'FIRMAS';if(String(n.type||'').includes('INVENTARIO'))return 'INVENTARIO';if(String(n.type||'').includes('GENERADA'))return 'GENERACIÓN OC';if(String(n.type||'').includes('DESCARGADA'))return 'DESCARGA';return 'FLUJO ERP'}
 let notificationCenterTab='pending';
 function notificationDateText(n){const raw=String(n.createdAt||'');if(!raw)return 'Sin fecha';try{return new Date(raw).toLocaleString('es-EC',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return raw.replace('T',' ').slice(0,19)}}
@@ -1684,7 +1694,7 @@ function openNotificationTarget(id){
  closeModal();if(!page)return;
  go(page);setTimeout(()=>{try{if(page==='ordenes'&&entity)viewOrder(entity);else if(page==='inventario'&&entity){const lot=inventory.find(x=>x.id===entity);if(lot)viewInventory(entity)}else if(page==='cuentasPagar'&&entity)viewPayable(entity);else if(page==='evaluacionProveedores'&&entity)openSupplierEvaluation('Anual',entity)}catch(e){console.warn('Abrir destino notificación',e)}},100)
 }
-async function completeNotificationAndOpen(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.readBy={...(n.readBy||{}),[me]:nowISO()};n.completedBy={...(n.completedBy||{}),[me]:nowISO()};await put('notifications',n);refreshNotificationBell();openNotificationTarget(id)}
+async function completeNotificationAndOpen(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.readBy={...(n.readBy||{}),[me]:nowISO()};n.completedBy={...(n.completedBy||{}),[me]:nowISO()};await persistNotificationAcknowledgement(n,'complete');refreshNotificationBell();openNotificationTarget(id)}
 async function reconcileOperationalNotifications(){
  if(!authRuntime?.user)return;
  const active=c12BuildAlerts(true).filter(a=>['critical','warning'].includes(a.level));const activeKeys=new Set();
@@ -2868,8 +2878,15 @@ function invSetMasterTab(t){inventoryMasterTab=t;renderInventory()}
 function invSearchText(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
 function invSetMasterSearch(v,pos){
  inventoryMasterSearch=v||'';
+ // Filtrar únicamente los resultados: no reconstruir el campo activo ni perder el cursor.
  clearTimeout(invSetMasterSearch.t);
- invSetMasterSearch.t=setTimeout(()=>{renderInventory();restoreSearchFocus('inv_master_q',Number.isFinite(pos)?pos:inventoryMasterSearch.length)},180)
+ invSetMasterSearch.t=setTimeout(()=>{
+  if(currentPage!=='inventario'||inventoryMasterTab!=='maestro')return;
+  const holder=document.querySelector('#inventario .invProductList');
+  if(!holder)return;
+  const html=inventoryMasterView();const tmp=document.createElement('div');tmp.innerHTML=html;
+  const updated=tmp.querySelector('.invProductList');if(updated)holder.innerHTML=updated.innerHTML;
+ },120);
 }
 function invToggleProduct(k){inventoryMasterOpen=inventoryMasterOpen===k?'':k;renderInventory()}
 function inventoryMasterTabs(){return`<div class="invMasterTabs"><button class="invMasterTab ${inventoryMasterTab==='dashboard'?'active':''}" onclick="invSetMasterTab('dashboard')">📊 Dashboard</button><button class="invMasterTab ${inventoryMasterTab==='maestro'?'active':''}" onclick="invSetMasterTab('maestro')">🧪 Inventario maestro</button><button class="invMasterTab ${inventoryMasterTab==='historico'?'active':''}" onclick="invSetMasterTab('historico')">🧾 Ingreso histórico</button><button class="invMasterTab ${inventoryMasterTab==='recepciones'?'active':''}" onclick="invSetMasterTab('recepciones')">🚚 Recepciones pendientes</button><button class="invMasterTab ${inventoryMasterTab==='movimientos'?'active':''}" onclick="invSetMasterTab('movimientos')">📚 Movimientos</button></div>`}
@@ -3673,7 +3690,9 @@ async function startFirebaseLiveSync(){
       if(ch.type==='removed')await applyCloudDelete(store,id,data);
       else await applyCloudUpsert(store,id,data)
      }
+     const active=document.activeElement;const keep=active&&/^(INPUT|TEXTAREA)$/.test(active.tagName)&&active.id?{id:active.id,value:active.value,start:active.selectionStart,end:active.selectionEnd}:null;
      await loadData();renderAll();
+     if(keep){const restored=$(keep.id);if(restored){restored.value=keep.value;try{restored.focus({preventScroll:true});restored.setSelectionRange(keep.start,keep.end)}catch(e){}}}
      firebaseRuntime.state='AL_DIA';firebaseRuntime.detail='Firebase First multi-PC activo'
     }catch(e){console.error(e);firebaseLive.errors++;pushSyncEvent('ERROR',store,'',e?.message||String(e))}
    },e=>{console.error(e);firebaseLive.errors++;firebaseRuntime.state='ERROR';firebaseRuntime.detail=e?.message||String(e);renderAdministration()});
