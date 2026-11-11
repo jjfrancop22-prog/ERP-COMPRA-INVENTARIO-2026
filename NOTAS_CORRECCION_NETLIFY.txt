@@ -1,0 +1,1 @@
+Corrección del despliegue: las funciones Netlify ahora usan export ESM, compatible con package.json type=module. Se conservan nombres de endpoints, lógica de correo y WhatsApp. Si Netlify usa npm run build y publica raíz, verificar que el repositorio corresponda al ERP Compras y no al ERP Planificación V29.

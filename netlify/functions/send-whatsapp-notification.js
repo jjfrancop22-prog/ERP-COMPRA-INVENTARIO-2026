@@ -1,6 +1,6 @@
 // C14.5.4.34.0 · Puente seguro ERP -> proveedor/automatización de WhatsApp.
 // Configure en Netlify: ERP_WHATSAPP_WEBHOOK_URL y opcional ERP_WHATSAPP_WEBHOOK_SECRET.
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: JSON.stringify({error:'METHOD_NOT_ALLOWED'}) };
   const url = process.env.ERP_WHATSAPP_WEBHOOK_URL;
   if (!url) return { statusCode: 503, body: JSON.stringify({error:'WHATSAPP_NOT_CONFIGURED'}) };

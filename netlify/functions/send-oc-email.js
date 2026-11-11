@@ -5,7 +5,7 @@ const ALLOWED_RECIPIENTS = new Set([
 ]);
 const ALLOWED_TYPES = new Set(['OC_FIRMA_1_PENDIENTE','OC_FIRMA_2_COMPLETA','OC_GENERADA','OC_DESCARGADA']);
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const headers={'Content-Type':'application/json','Cache-Control':'no-store'};
   if(event.httpMethod!=='POST') return {statusCode:405,headers,body:JSON.stringify({error:'Método no permitido'})};
   const apiKey=process.env.RESEND_API_KEY;
