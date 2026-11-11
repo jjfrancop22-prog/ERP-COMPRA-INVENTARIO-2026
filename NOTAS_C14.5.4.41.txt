@@ -1,0 +1,8 @@
+ERP Compras C14.5.4.41 — actualización PWA visible y controlada
+- Aviso al detectar nueva versión, sin recargar durante la edición.
+- Revisión al abrir, cada 5 minutos, al recuperar Internet o volver a la pestaña.
+- Actualizar ahora habilitado para usuarios autenticados; verifica cambios locales pendientes.
+- Versiones consistentes en interfaz, release.json y service worker.
+- Caché limitado y navegación con prioridad a red; conserva uso offline básico.
+- Centro inteligente de notificaciones C14.5.4.40 conservado.
+- No se modifican reglas ni registros de Firebase.

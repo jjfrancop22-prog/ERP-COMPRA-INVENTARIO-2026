@@ -452,7 +452,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
   <main class="main">
     <div class="top">
       <div class="titleWrap"><div class="titleIcon" id="pageIcon">⌂</div><div><h1 id="pageTitle">Centro de Operaciones</h1><div class="muted" id="pageSub">Núcleo modular con Proveedores y Productos activos.</div></div></div>
-      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.38</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
+      <div class="topActions"><span class="badge ok" id="net">● ONLINE</span><span class="badge blue" id="buildBadge">BUILD C14.5.4.41</span><button class="iconBtn notifyBell" id="notifyBellBtn" title="Notificaciones de flujo" onclick="openNotificationCenter()">🔔<span class="notifyBellCount" id="notifyBellCount" style="display:none">0</span></button><button class="iconBtn" id="themeBtn" title="Cambiar tema">☾</button><button class="install" id="installBtn">⬇ Instalar ERP</button></div>
     </div>
 
     <section id="dashboard" class="page active"></section>
@@ -489,7 +489,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 
 
 <script>
-/* PSI C14.5.4.38: conserve el mismo nodo de búsqueda durante renderizados y sincronización. */
+/* PSI C14.5.4.41: conserve el mismo nodo de búsqueda durante renderizados y sincronización. */
 (function(){
  const ids=new Set(['qProv','product_q','request_q','order_q','alert_q','cxp_q','audit_q','inv_master_q','inventory_master_q']);
  const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
@@ -513,7 +513,7 @@ body[data-readonly='true'] .writeOnly{display:none!important}
 </script>
 <script>
 'use strict';
-const VERSION='V4.0.0-C14.5.4.38';
+const VERSION='V4.0.0-C14.5.4.41';
 const sequence=[
   ['dashboard','Dashboard','⌂',true],['proveedores','Proveedores','♙',true],['productos','Productos','▦',true],['solicitudes','Solicitudes','✎',true],['cotizaciones','Cotizaciones','$',true],['ordenes','Órdenes de Compra','▤',true],['recepcion','Recepción OC','⇩',true],['inventario','Inventario','▣',true],['serviciosTecnicos','Servicios Técnicos','⚙',true],['facturas','Facturas','▧',true],['cuentasPagar','Cuentas por Pagar','◈',true],['evaluacionProveedores','Evaluación de Proveedores','★',true],['notificaciones','Centro de Notificaciones','🔔',true],['dashboardCorporativo','Dashboard Corporativo','◫',true],['administracion','Administración ERP','⚙',true]
 ];
@@ -746,7 +746,7 @@ async function logAudit(action,detail,entityId='',module='Proveedores',meta={}){
 }
 async function loadData(){providers=await getAll('providers');products=await getAll('products');requests=await getAll('requests');quotations=await getAll('quotations');orders=await getAll('orders');receptions=await getAll('receptions');inventory=await getAll('inventory');await applyInventoryWriteoffGuards();inventory=await getAll('inventory');technicalServices=await getAll('technicalServices');invoices=await getAll('invoices');payables=await getAll('payables');payments=await getAll('payments');supplierEvaluations=await getAll('supplierEvaluations');audit=(await getAll('audit')).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,5000);renderAll()}
 
-function buildNav(){const nav=$('nav');const pending=(typeof visibleNotifications==='function'?visibleNotifications().filter(x=>!notificationReadByMe(x)).length:0);nav.innerHTML=sequence.filter(([id])=>canViewPage(id)).map(([id,name,ico,active])=>`<button data-page="${id}" class="${id===currentPage?'active':''} ${active?'':'locked'}" ${active?`onclick="go('${id}')"`:''}><span class="ico">${ico}</span><span>${name}</span>${id==='notificaciones'&&pending?`<span class="badge warn" style="margin-left:auto">${pending}</span>`:''}</button>`).join('')}
+function buildNav(){const nav=$('nav');const pending=(typeof visibleNotifications==='function'?visibleNotifications().filter(x=>!notificationEffectivelyDone(x)).length:0);nav.innerHTML=sequence.filter(([id])=>canViewPage(id)).map(([id,name,ico,active])=>`<button data-page="${id}" class="${id===currentPage?'active':''} ${active?'':'locked'}" ${active?`onclick="go('${id}')"`:''}><span class="ico">${ico}</span><span>${name}</span>${id==='notificaciones'&&pending?`<span class="badge warn" style="margin-left:auto">${pending}</span>`:''}</button>`).join('')}
 function go(page){
  if(!canViewPage(page)){permissionDenied('acceder',page);if(!authRuntime.user)page='administracion';else return}
  if(!['dashboard','proveedores','productos','solicitudes','cotizaciones','ordenes','recepcion','inventario','serviciosTecnicos','facturas','cuentasPagar','evaluacionProveedores','alertas','notificaciones','dashboardCorporativo','administracion'].includes(page)){toast('Este módulo todavía está bloqueado');return}
@@ -1632,18 +1632,49 @@ const OC_NOTIFICATION_CONFIG={
 function normEmail(v){return String(v||'').trim().toLowerCase()}
 function notificationAudience(){return normEmail(authRuntime?.user?.email||authRuntime?.profile?.email||'')}
 function notificationAudienceAliases(){const me=notificationAudience();const aliases=new Set([me]);if(['jjfrancop22@hotmail.com','jjfrancop22@psi.com.ec'].includes(me)){aliases.add('jjfrancop22@hotmail.com');aliases.add('jjfrancop22@psi.com.ec')}return aliases}
-function notificationReadByMe(n){const aliases=notificationAudienceAliases();return !!n?.resolvedAt||!!n?.completedAt||!!n?.readAt||!!n?.archivedAt||[...aliases].some(me=>!!n?.readBy?.[me]||!!n?.completedBy?.[me]||!!n?.archivedBy?.[me])}
-function notificationArchivedByMe(n){return !!n?.archivedAt||[...notificationAudienceAliases()].some(me=>!!n?.archivedBy?.[me])}
-function notificationGroupKey(n){return [n.orderId||'',n.type||'',n.stage||'',n.eventKey||n.createdAt||'',n.actor||'',n.message||''].join('|')}
-function visibleNotifications(){const all=(window.erpNotifications||[]).filter(n=>!notificationArchivedByMe(n));const seen=new Set();return all.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).filter(n=>{const k=notificationGroupKey(n);if(seen.has(k))return false;seen.add(k);return true})}
-function refreshNotificationBell(){const el=$('notifyBellCount');if(!el)return;const n=visibleNotifications().filter(x=>!notificationReadByMe(x)).length;el.textContent=String(n);el.style.display=n?'':'none';const btn=$('notifyBellBtn');if(btn)btn.title=n?`${n} actividad(es) pendiente(s) para revisar`:'Centro de Notificaciones';try{buildNav()}catch(e){};if(currentPage==='notificaciones')try{renderNotificationPage()}catch(e){}}
+function notificationReadByMe(n){const me=notificationAudience();return !!n?.resolvedAt||!!(n?.completedBy&&n.completedBy[me])||!!(n?.readBy&&n.readBy[me])||(!n?.readBy&&!!n?.readAt)}
+function notificationArchivedByMe(n){const me=notificationAudience();return !!(n?.archivedBy&&n.archivedBy[me])||(!n?.archivedBy&&!!n?.archivedAt)}
+// Identidad lógica: no depende del momento en que cada cliente reconstruyó el aviso.
+function notificationGroupKey(n){
+ if(n.meta?.alertId)return 'ALERT|'+n.meta.alertId;
+ if(n.type?.startsWith('INVENTARIO_STOCK_'))return 'STOCK|'+(n.productId||n.entityId||'');
+ if(n.orderId&&n.type==='OC_GENERADA')return 'OC_GENERADA|'+n.orderId;
+ if(n.orderId&&n.type==='OC_FIRMA_1_PENDIENTE')return 'FIRMA_1|'+n.orderId;
+ if(n.orderId&&n.type==='OC_FIRMA_2_COMPLETA')return 'FIRMA_2|'+n.orderId;
+ if(n.globalDedupeKey||n.dedupeKey)return n.globalDedupeKey||n.dedupeKey;
+ return [n.orderId||'',n.type||'',n.stage||'',n.eventKey||'',n.message||''].join('|');
+}
+function notificationLifecycleDone(n){
+ if(n.resolvedAt)return true;
+ const o=n.orderId?orders.find(x=>String(x.id)===String(n.orderId)):null;
+ if(n.type==='OC_FIRMA_1_PENDIENTE'&&o?.firmas?.autorizado)return true;
+ if(n.type==='OC_FIRMA_2_COMPLETA'&&o?.firmas?.autorizado)return true;
+ if(n.type==='OC_GENERADA'&&o?.firmas?.autorizado)return true;
+ if(n.type==='INVENTARIO_STOCK_AGOTADO'||n.type==='INVENTARIO_STOCK_BAJO_MINIMO'||n.type==='INVENTARIO_STOCK_PUNTO_PEDIDO'){
+  const g=inventoryGroups().find(x=>String(x.productoId)===String(n.productId));
+  if(!g)return true;
+  return g.total>0&&!(g.stockMin>0&&g.total<=g.stockMin)&&!(g.puntoPedido>0&&g.total<=g.puntoPedido);
+ }
+ return false;
+}
+function notificationEffectivelyDone(n){return notificationLifecycleDone(n)||notificationReadByMe(n)}
+function visibleNotifications(){
+ const all=(window.erpNotifications||[]).filter(n=>!notificationArchivedByMe(n));
+ const seen=new Set();
+ // Mantener en historial el evento más reciente, sin perder las actividades históricas en Firebase.
+ return all.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).filter(n=>{
+  const k=notificationGroupKey(n);if(seen.has(k))return false;seen.add(k);return true;
+ });
+}
+function refreshNotificationBell(){const el=$('notifyBellCount');if(!el)return;const n=visibleNotifications().filter(x=>!notificationEffectivelyDone(x)).length;el.textContent=String(n);el.style.display=n?'':'none';const btn=$('notifyBellBtn');if(btn)btn.title=n?`${n} actividad(es) pendiente(s) para revisar`:'Centro de Notificaciones';try{buildNav()}catch(e){};if(currentPage==='notificaciones')try{renderNotificationPage()}catch(e){}}
 async function loadNotifications(){try{window.erpNotifications=await getAll('notifications')}catch(e){window.erpNotifications=[]}refreshNotificationBell();return window.erpNotifications}
 function orderNotificationSummary(o){return `${o.moneda||'USD'} ${orderTotal(o).toFixed(2)} · ${o.proveedorNombre||orderProvider(o)?.razonSocial||'Proveedor'}`}
 async function createERPNotification({recipientEmail,type,title,message,order,actor,stage,eventKey,productId='',actionType='',page='',entityId='',meta={}}){
  // Evento canónico global: una sola fila Firebase, visible a TODO usuario autenticado con acceso al ERP.
- const dedupe=`${order?.id||''}|${type}|${stage||''}|${eventKey||''}`;
+ const dedupe=`${order?.id||''}|${type}|${stage||''}|${type==='OC_GENERADA'?(order?.id||''):eventKey||''}`;
  const pool=window.erpNotifications||await getAll('notifications');
  const existing=pool.find(n=>n.dedupeKey===dedupe||n.globalDedupeKey===dedupe);
+ // Las reconciliaciones nunca deben reabrir actividades que ya fueron resueltas.
  if(existing)return existing;
  const row={id:crypto.randomUUID(),dedupeKey:dedupe,globalDedupeKey:dedupe,recipientEmail:'*',audience:'ALL_AUTHORIZED_USERS',type,title,message,orderId:order?.id||'',orderCode:order?.codigo||'',stage:stage||'',eventKey:eventKey||'',actor:actor||authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP',createdAt:nowISO(),readBy:{},archivedBy:{},channelInternal:'FIREBASE_GLOBAL',channelEmail:'NO_REQUERIDO',emailPrepared:false,emailSentAt:'',emailMessageId:'',emailError:'',productId:productId||'',actionType:actionType||'',page:page||'',entityId:entityId||'',meta:meta||{},version:'C14.5.4.33.0'};
  await put('notifications',row);window.erpNotifications=window.erpNotifications||[];window.erpNotifications.push(row);refreshNotificationBell();deliverInternalBrowserNotification(row).catch(()=>{});deliverWhatsAppNotification(row).catch(()=>{});return row;
@@ -1664,7 +1695,7 @@ async function sendOrderNotificationEmail(n,order){
 async function notifyOrderEvent(o,event,extra=''){
  const actor=authRuntime?.profile?.name||authRuntime?.user?.email||'Usuario ERP';
  const cfg=OC_NOTIFICATION_CONFIG[event];if(!o||!cfg)return;
- const stamp=nowISO(), eventKey=event==='generado'?(o.fechaEmision||o.updatedAt||stamp):stamp;
+ const stamp=nowISO(), eventKey=event==='generado'?o.id:stamp;
  const isGenerated=event==='generado';
  const type=isGenerated?'OC_GENERADA':'OC_DESCARGADA';
  const title=isGenerated?`🧾 OC ${o.codigo} generada`:`⬇ OC ${o.codigo} descargada / impresa`;
@@ -1673,10 +1704,11 @@ async function notifyOrderEvent(o,event,extra=''){
 }
 async function registerOrderDownload(id){const o=orders.find(x=>x.id===id);if(!o)return;await notifyOrderEvent(o,'descarga','Evento registrado desde el botón Guardar como PDF / Imprimir.');await logAudit('DESCARGAR_IMPRIMIR_OC',o.codigo,o.id,'Órdenes de Compra').catch(()=>{});}
 function notificationCategoryInfo(n){const c=notificationCategory(n);if(c==='STOCK IA')return {key:'00',icon:'📦',label:'STOCK / REPOSICIÓN'};if(c==='VENCIMIENTOS')return {key:'00b',icon:'⌛',label:'VENCIMIENTOS / CADUCIDAD'};if(c==='GENERACIÓN OC')return {key:'01',icon:'🧾',label:'OC GENERADAS'};if(c==='FIRMAS')return {key:'02',icon:'✍️',label:'FIRMAS'};if(c==='INVENTARIO')return {key:'03',icon:'📦',label:'RECEPCIÓN / INVENTARIO'};if(c==='DESCARGA')return {key:'04',icon:'⬇️',label:'DESCARGAS / IMPRESIONES'};return {key:'05',icon:'🔔',label:'OTROS EVENTOS'}}
-function showERPFlowToast(n){if(!n||notificationReadByMe(n))return;let stack=document.getElementById('erpToastStack');if(!stack){stack=document.createElement('div');stack.id='erpToastStack';stack.className='erpToastStack';document.body.appendChild(stack)}const info=notificationCategoryInfo(n),el=document.createElement('div');el.className='erpFlowToast';el.innerHTML=`<b>${info.icon} ${esc(info.label)} · ${esc(n.orderCode||'ERP')}</b><div>${esc(n.title||'Nuevo evento')}</div><small>👤 ${esc(n.actor||'Usuario ERP')} · ${esc(String(n.createdAt||'').replace('T',' ').slice(0,19))}</small>`;stack.prepend(el);while(stack.children.length>3)stack.lastElementChild.remove();setTimeout(()=>el.remove(),6500)}
+function showERPFlowToast(n){if(!n||notificationEffectivelyDone(n))return;let stack=document.getElementById('erpToastStack');if(!stack){stack=document.createElement('div');stack.id='erpToastStack';stack.className='erpToastStack';document.body.appendChild(stack)}const info=notificationCategoryInfo(n),el=document.createElement('div');el.className='erpFlowToast';el.innerHTML=`<b>${info.icon} ${esc(info.label)} · ${esc(n.orderCode||'ERP')}</b><div>${esc(n.title||'Nuevo evento')}</div><small>👤 ${esc(n.actor||'Usuario ERP')} · ${esc(String(n.createdAt||'').replace('T',' ').slice(0,19))}</small>`;stack.prepend(el);while(stack.children.length>3)stack.lastElementChild.remove();setTimeout(()=>el.remove(),6500)}
 async function deliverInternalBrowserNotification(n){
- if(!n||!authRuntime?.user||notificationReadByMe(n))return;
+ if(!n||!authRuntime?.user||notificationEffectivelyDone(n))return;
  if(!('Notification' in window)||Notification.permission!=='granted')return;
+ window.__erpBrowserNotified??=new Set();if(window.__erpBrowserNotified.has(n.id))return;window.__erpBrowserNotified.add(n.id);
  try{const reg=await navigator.serviceWorker?.ready;if(reg)await reg.showNotification(n.title||'ERP Compras PSI',{body:n.message||'',tag:'erp-flow-'+n.id,icon:'./icons/icon-192.svg',badge:'./icons/icon-192.svg',data:{url:'./index.html#ordenes'}});else new Notification(n.title||'ERP Compras PSI',{body:n.message||'',tag:'erp-flow-'+n.id})}catch(e){console.warn('Notificación interna PC',e)}
 }
 async function enableFlowBrowserNotifications(){if(!('Notification' in window)){toast('Este navegador no admite notificaciones del sistema');return}const p=await Notification.requestPermission();toast(p==='granted'?'Notificaciones de la app activadas':'Permiso de notificación no concedido')}
@@ -1695,7 +1727,7 @@ async function notifyInventoryEntry(x){
  const title=`📦 Ingreso a inventario · ${x.productoNombre||x.codigoOperativo||'Producto'}`;
  const message=`${actor} ingresó ${Number(x.contenidoInventarioInicial??x.cantidadRecibida??0).toFixed(x.metodo==='Contable'?0:2)} ${x.unidadBase||x.unidad||''} al inventario${x.ordenCodigo?' desde OC '+x.ordenCodigo:''}. Lote ${x.loteProveedor||x.lotePSI||'—'} · ${x.ubicacion||'sin ubicación'}.`;
  const recipients=['jjfrancop22@psi.com.ec','elisaponce@psi.com.ec','mariaguerrero@psi.com.ec'];
- const eventKey=x.id+'|'+(x.createdAt||x.updatedAt||'');
+ const eventKey=x.id;
  for(const email of recipients)await createERPNotification({recipientEmail:email,type:'INVENTARIO_INGRESO',title,message,order:o||{id:x.ordenId||x.id,codigo:x.ordenCodigo||x.lotePSI,moneda:'',items:[]},actor,stage:'INVENTARIO',eventKey});
 }
 async function reconcileOrderFlowNotifications(){
@@ -1717,8 +1749,8 @@ async function persistNotificationAcknowledgement(n,kind){
  if(kind==='complete')merged.completedBy[me]=stamp;
  Object.assign(n,merged);await put('notifications',merged);
 }
-async function markNotificationRead(id,openOrderAfter=false){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.readBy={...(n.readBy||{}),[me]:nowISO()};await persistNotificationAcknowledgement(n,'read');refreshNotificationBell();if(openOrderAfter&&n.orderId){closeModal();go('ordenes');setTimeout(()=>viewOrder(n.orderId),60)}else openNotificationCenter()}
-async function markAllNotificationsRead(){const me=notificationAudience();for(const n of visibleNotifications().filter(x=>!notificationReadByMe(x))){n.readBy={...(n.readBy||{}),[me]:nowISO()};await persistNotificationAcknowledgement(n,'read')}refreshNotificationBell();openNotificationCenter()}
+async function markNotificationRead(id,openOrderAfter=false){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.readBy={...(n.readBy||{}),[me]:nowISO()};await put('notifications',n);refreshNotificationBell();if(openOrderAfter&&n.orderId){closeModal();go('ordenes');setTimeout(()=>viewOrder(n.orderId),60)}else openNotificationCenter()}
+async function markAllNotificationsRead(){const me=notificationAudience();for(const n of visibleNotifications().filter(x=>!notificationEffectivelyDone(x))){n.readBy={...(n.readBy||{}),[me]:nowISO()};await persistNotificationAcknowledgement(n,'read')}refreshNotificationBell();openNotificationCenter()}
 async function archiveNotification(id){const n=(window.erpNotifications||[]).find(x=>x.id===id);if(!n)return;const me=notificationAudience();n.archivedBy={...(n.archivedBy||{}),[me]:nowISO()};n.readBy={...(n.readBy||{}),[me]:n.readBy?.[me]||nowISO()};await persistNotificationAcknowledgement(n,'archive');refreshNotificationBell();openNotificationCenter()}
 function notificationCategory(n){if(String(n.type||'').includes('VENCIMIENTO')||String(n.type||'').includes('CADUCIDAD'))return 'VENCIMIENTOS';if(String(n.type||'').includes('STOCK'))return 'STOCK IA';if(String(n.type||'').includes('FIRMA'))return 'FIRMAS';if(String(n.type||'').includes('INVENTARIO'))return 'INVENTARIO';if(String(n.type||'').includes('GENERADA'))return 'GENERACIÓN OC';if(String(n.type||'').includes('DESCARGADA'))return 'DESCARGA';return 'FLUJO ERP'}
 let notificationCenterTab='pending';
@@ -1738,7 +1770,7 @@ async function reconcileOperationalNotifications(){
   const type=(a.category==='Inventario'&&String(a.title||'').toLowerCase().includes('venc'))?'INVENTARIO_VENCIMIENTO':(a.category==='Inventario'&&String(a.title||'').toLowerCase().includes('stock'))?'INVENTARIO_STOCK_ALERTA':'ALERTA_OPERATIVA_INTELIGENTE';
   const key='ALERT|'+a.id;activeKeys.add(key);
   const n=await createERPNotification({type,title:`${a.icon||'🤖'} ${a.title}`,message:a.detail||'',order:null,actor:'Motor inteligente · ERP',stage:a.level==='critical'?'CRÍTICA':'PREVENTIVA',eventKey:key,page:a.page||'',entityId:a.entityId||'',meta:{alertId:a.id,page:a.page||'',entityId:a.entityId||'',level:a.level,date:a.date||'',botOperational:true}});
-  if(n){let changed=false;if(n.message!==a.detail){n.message=a.detail;changed=true}if(n.resolvedAt){n.resolvedAt='';changed=true}n.page=a.page||n.page||'';n.entityId=a.entityId||n.entityId||'';n.meta={...(n.meta||{}),alertId:a.id,page:a.page||'',entityId:a.entityId||'',level:a.level,date:a.date||'',botOperational:true};if(changed){n.updatedAt=nowISO();await put('notifications',n)}}
+  if(n){let changed=false;if(n.message!==a.detail){n.message=a.detail;changed=true}if(n.resolvedAt){/* Mantener resolución histórica: no reabrir en cada sincronización. */}n.page=a.page||n.page||'';n.entityId=a.entityId||n.entityId||'';n.meta={...(n.meta||{}),alertId:a.id,page:a.page||'',entityId:a.entityId||'',level:a.level,date:a.date||'',botOperational:true};if(changed){n.updatedAt=nowISO();await put('notifications',n)}}
  }
  const pool=window.erpNotifications||[];for(const n of pool){if(n.meta?.botOperational&&n.eventKey?.startsWith('ALERT|')&&!activeKeys.has(n.eventKey)&&!n.resolvedAt){n.resolvedAt=nowISO();n.resolvedReason='Condición normalizada automáticamente por el motor inteligente';n.updatedAt=nowISO();await put('notifications',n)}}
  refreshNotificationBell()
@@ -1758,8 +1790,8 @@ async function deliverWhatsAppNotification(n){
  }catch(e){n.whatsappStatus=String(e?.message||'').includes('WHATSAPP_NOT_CONFIGURED')?'PENDIENTE_CONFIGURACION':'ERROR';n.whatsappError=String(e?.message||e).slice(0,240)}
  try{await put('notifications',n)}catch(e){}return n.whatsappStatus==='ENVIADO';
 }
-function renderNotificationPage(){const el=$('notificaciones');if(!el)return;const rows=visibleNotifications().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))),pending=rows.filter(n=>!notificationReadByMe(n)),history=rows.filter(n=>notificationReadByMe(n)),isHistory=notificationCenterTab==='history',selected=isHistory?history:pending;el.innerHTML=`<div class="alertHero"><div class="alertHeroMain"><h2>🔔 Centro único de Notificaciones</h2><p>Un solo lugar para firmas de OC, recepción, inventario, stock, caducidades, CxP, servicios técnicos, evaluaciones y demás actividades del ERP. El motor inteligente recalcula los riesgos y evita duplicados.</p><div class="quickActions"><button class="btn blue" onclick="enableFlowBrowserNotifications()">🔔 Avisos en esta PC</button><button class="btn" onclick="reconcileOperationalNotifications().then(()=>loadNotifications()).then(()=>renderNotificationPage())">↻ Analizar ahora</button></div></div><div class="alertMini"><span class="muted">Por ver</span><b>${pending.length}</b><small>requieren atención</small></div><div class="alertMini"><span class="muted">Realizadas</span><b>${history.length}</b><small>trazabilidad</small></div><div class="alertMini"><span class="muted">WhatsApp</span><b>WA</b><small>canal externo configurable</small></div></div><div class="note"><b>Motor inteligente activo.</b> Las condiciones críticas/preventivas se convierten en actividades; si la condición se normaliza, se resuelven automáticamente. Cada usuario mantiene su propio estado de atención.</div><div class="notifyTabs" style="margin-top:14px"><button class="notifyTab ${!isHistory?'active':''}" onclick="notificationCenterTab='pending';renderNotificationPage()">🔔 Actividades por ver <span>${pending.length}</span></button><button class="notifyTab ${isHistory?'active':''}" onclick="notificationCenterTab='history';renderNotificationPage()">✅ Actividad realizada <span>${history.length}</span></button></div>${!isHistory&&pending.length?`<div style="display:flex;justify-content:flex-end;margin:12px 0"><button class="btn" onclick="markAllNotificationsRead().then(()=>renderNotificationPage())">✓ Marcar todas realizadas</button></div>`:''}${notificationTimeline(selected,isHistory)}`}
-function openNotificationCenter(){const rows=visibleNotifications().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));const pending=rows.filter(n=>!notificationReadByMe(n));const history=rows.filter(n=>notificationReadByMe(n));const isHistory=notificationCenterTab==='history';const selected=isHistory?history:pending;const tabs=`<div class="notifyTabs"><button class="notifyTab ${!isHistory?'active':''}" onclick="setNotificationCenterTab('pending')">🔔 Actividades por ver <span>${pending.length}</span></button><button class="notifyTab ${isHistory?'active':''}" onclick="setNotificationCenterTab('history')">✅ Actividad realizada <span>${history.length}</span></button></div>`;const body=`<div class="note"><b>🔔 Centro único de notificaciones · Inteligente</b><br>El ERP analiza y organiza automáticamente todo el flujo en dos bandejas. <b>Actividades por ver</b> muestra únicamente lo que requiere su revisión. Al verla o marcarla como realizada pasa automáticamente a <b>Actividad realizada</b>, conservando la trazabilidad. En ambas vistas el orden es <b>más reciente → más antigua</b>.</div>${tabs}<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin:12px 0"><button class="btn blue" onclick="enableFlowBrowserNotifications()">🔔 Activar avisos en esta PC</button>${!isHistory&&pending.length?'<button class="btn" onclick="markAllNotificationsRead()">✓ Marcar todas realizadas</button>':''}</div>${notificationTimeline(selected,isHistory)}`;openModal('🔔 Centro de Notificaciones del ERP',body,'<button class="btn" onclick="closeModal()">Cerrar</button>')}
+function renderNotificationPage(){const el=$('notificaciones');if(!el)return;const rows=visibleNotifications().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))),pending=rows.filter(n=>!notificationEffectivelyDone(n)),history=rows.filter(n=>notificationEffectivelyDone(n)),isHistory=notificationCenterTab==='history',selected=isHistory?history:pending;el.innerHTML=`<div class="alertHero"><div class="alertHeroMain"><h2>🔔 Centro único de Notificaciones</h2><p>Un solo lugar para firmas de OC, recepción, inventario, stock, caducidades, CxP, servicios técnicos, evaluaciones y demás actividades del ERP. El motor inteligente recalcula los riesgos y evita duplicados.</p><div class="quickActions"><button class="btn blue" onclick="enableFlowBrowserNotifications()">🔔 Avisos en esta PC</button><button class="btn" onclick="reconcileOperationalNotifications().then(()=>loadNotifications()).then(()=>renderNotificationPage())">↻ Analizar ahora</button></div></div><div class="alertMini"><span class="muted">Por ver</span><b>${pending.length}</b><small>requieren atención</small></div><div class="alertMini"><span class="muted">Realizadas</span><b>${history.length}</b><small>trazabilidad</small></div><div class="alertMini"><span class="muted">WhatsApp</span><b>WA</b><small>canal externo configurable</small></div></div><div class="note"><b>Motor inteligente activo.</b> Las condiciones normalizadas y las OC completadas pasan al historial; las alertas repetidas se agrupan sin borrar su trazabilidad. Cada usuario mantiene su propio estado de atención.</div><div class="notifyTabs" style="margin-top:14px"><button class="notifyTab ${!isHistory?'active':''}" onclick="notificationCenterTab='pending';renderNotificationPage()">🔔 Actividades por ver <span>${pending.length}</span></button><button class="notifyTab ${isHistory?'active':''}" onclick="notificationCenterTab='history';renderNotificationPage()">✅ Actividad realizada <span>${history.length}</span></button></div>${!isHistory&&pending.length?`<div style="display:flex;justify-content:flex-end;margin:12px 0"><button class="btn" onclick="markAllNotificationsRead().then(()=>renderNotificationPage())">✓ Marcar todas realizadas</button></div>`:''}${notificationTimeline(selected,isHistory)}`}
+function openNotificationCenter(){const rows=visibleNotifications().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));const pending=rows.filter(n=>!notificationEffectivelyDone(n));const history=rows.filter(n=>notificationEffectivelyDone(n));const isHistory=notificationCenterTab==='history';const selected=isHistory?history:pending;const tabs=`<div class="notifyTabs"><button class="notifyTab ${!isHistory?'active':''}" onclick="setNotificationCenterTab('pending')">🔔 Actividades por ver <span>${pending.length}</span></button><button class="notifyTab ${isHistory?'active':''}" onclick="setNotificationCenterTab('history')">✅ Actividad realizada <span>${history.length}</span></button></div>`;const body=`<div class="note"><b>🔔 Centro único de notificaciones · Inteligente</b><br>El ERP analiza y organiza automáticamente todo el flujo en dos bandejas. <b>Actividades por ver</b> muestra únicamente lo que requiere su revisión. Al verla o marcarla como realizada pasa automáticamente a <b>Actividad realizada</b>, conservando la trazabilidad. En ambas vistas el orden es <b>más reciente → más antigua</b>.</div>${tabs}<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin:12px 0"><button class="btn blue" onclick="enableFlowBrowserNotifications()">🔔 Activar avisos en esta PC</button>${!isHistory&&pending.length?'<button class="btn" onclick="markAllNotificationsRead()">✓ Marcar todas realizadas</button>':''}</div>${notificationTimeline(selected,isHistory)}`;openModal('🔔 Centro de Notificaciones del ERP',body,'<button class="btn" onclick="closeModal()">Cerrar</button>')}
 
 
 function orderSignatureStage(o){const f=o?.firmas||{};return f.autorizado?2:f.aprobado?1:0}
@@ -3028,6 +3060,12 @@ async function reconcileSmartStockNotifications(){
   // La alerta existente se refresca con cada reconciliación para que la proyección no quede congelada.
   if(n&&(n.message!==message||Number(n.meta?.stock)!==Number(g.total))){n.message=message;n.meta={...(n.meta||{}),stock:g.total,min:g.stockMin,point:g.puntoPedido,target:a.target,suggestedQty:a.qty,dailyConsumption:a.forecast.daily||0,monthlyConsumption:a.forecast.monthly||0,daysToStockout:a.forecast.daysLeft,coverageDays:a.coverageDays,leadDays:a.leadDays,forecastSampleDays:a.forecast.sampleDays||0};n.updatedAt=nowISO();await put('notifications',n)}
  }
+ const activeProducts=new Set(groups.filter(g=>g.total<=0||(g.stockMin>0&&g.total<=g.stockMin)||(g.puntoPedido>0&&g.total<=g.puntoPedido)).map(g=>String(g.productoId)));
+ for(const n of (window.erpNotifications||[])){
+  if(n.type?.startsWith('INVENTARIO_STOCK_')&&n.productId&&!activeProducts.has(String(n.productId))&&!n.resolvedAt){
+   n.resolvedAt=nowISO();n.resolvedReason='Stock normalizado automáticamente';n.updatedAt=nowISO();await put('notifications',n);
+  }
+ }
 }
 function inventoryDashboardView(){
  const groups=inventoryGroups(),pending=pendingInventoryReceptionItems(),moves=inventoryAllMovements();
@@ -3205,7 +3243,7 @@ function generateInventoryManagementReport(){
 }
 function exportInventoryManagementReport(){openInventoryManagementReport()}
 
-function renderInventory(){const el=$('inventario');if(!el)return;const groups=inventoryGroups(),pending=pendingInventoryReceptionItems();let body=inventoryMasterTab==='dashboard'?inventoryDashboardView():inventoryMasterTab==='maestro'?inventoryMasterView():inventoryMasterTab==='historico'?inventoryHistoricalView():inventoryMasterTab==='recepciones'?inventoryPendingView():inventoryMovesView();el.innerHTML=`<div class="inventoryHero"><div class="inventoryHeroMain"><h2>▣ Inventario Enterprise</h2><p>Consolidado por Producto maestro; los lotes quedan para trazabilidad y FEFO.</p><div class="quickActions"><button class="btn primary" onclick="openDirectMovement()">✎ Registrar consumo / movimiento</button><button class="btn" onclick="openHistoricalInventoryEntry('existing')">＋ Alta histórica</button><button class="btn" onclick="go('recepcion')">↓ Recepción</button><button class="btn" onclick="go('productos')">▦ Productos</button><button class="btn" onclick="openInventoryManagementReport()">📊 Reporte gerencial</button><button class="btn" onclick="exportInventoryJSON()">💾 Base JSON</button></div></div><div class="inventoryMini"><span class="muted">Productos</span><b>${groups.length}</b><small>códigos con existencia</small></div><div class="inventoryMini"><span class="muted">Lotes</span><b>${operationalInventoryRows().length}</b><small>existencias trazables</small></div><div class="inventoryMini"><span class="muted">Pendientes</span><b>${pending.length}</b><small>desde Recepción</small></div></div>${inventoryMasterTabs()}${body}`;if(inventoryMasterTab==='maestro'&&inventoryMasterSearch){invSetMasterSearch(inventoryMasterSearch)}}
+function renderInventory(){const el=$('inventario');if(!el)return;const groups=inventoryGroups(),pending=pendingInventoryReceptionItems();let body=inventoryMasterTab==='dashboard'?inventoryDashboardView():inventoryMasterTab==='maestro'?inventoryMasterView():inventoryMasterTab==='historico'?inventoryHistoricalView():inventoryMasterTab==='recepciones'?inventoryPendingView():inventoryMovesView();el.innerHTML=`<div class="inventoryHero"><div class="inventoryHeroMain"><h2>▣ Inventario Enterprise</h2><p>Consolidado por Producto maestro; los lotes quedan para trazabilidad y FEFO.</p><div class="quickActions"><button class="btn primary" onclick="openDirectMovement()">✎ Registrar consumo / movimiento</button><button class="btn" onclick="openHistoricalInventoryEntry('existing')">＋ Alta histórica</button><button class="btn" onclick="go('recepcion')">↓ Recepción</button><button class="btn" onclick="go('productos')">▦ Productos</button><button class="btn" onclick="openInventoryManagementReport()">📊 Reporte gerencial</button><button class="btn" onclick="exportInventoryJSON()">💾 Base JSON</button></div></div><div class="inventoryMini"><span class="muted">Productos</span><b>${groups.length}</b><small>códigos con existencia</small></div><div class="inventoryMini"><span class="muted">Lotes</span><b>${operationalInventoryRows().length}</b><small>existencias trazables</small></div><div class="inventoryMini"><span class="muted">Pendientes</span><b>${pending.length}</b><small>desde Recepción</small></div></div>${inventoryMasterTabs()}${body}`}
 function hasStockPolicyValue(v){return v!==undefined&&v!==null&&String(v)!==''}
 function lastInventoryPolicyForProduct(productId){const rows=inventory.filter(x=>x.productoId===productId&&x.estado!=='Anulado').sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));const x=rows[0];return x?{stockMin:x.stockMin,stockMax:x.stockMax,puntoPedido:x.puntoPedido,source:'Último ingreso de inventario'}:null}
 function productStockPolicy(p={}){const masterHas=hasStockPolicyValue(p.stockMin)||hasStockPolicyValue(p.stockMax)||hasStockPolicyValue(p.puntoPedido);if(masterHas)return{stockMin:hasStockPolicyValue(p.stockMin)?p.stockMin:'',stockMax:hasStockPolicyValue(p.stockMax)?p.stockMax:'',puntoPedido:hasStockPolicyValue(p.puntoPedido)?p.puntoPedido:'',source:'Producto maestro'};const fallback=lastInventoryPolicyForProduct(p.id);if(fallback)return fallback;return{stockMin:'',stockMax:'',puntoPedido:'',source:'Sin política definida'}}
@@ -3729,9 +3767,23 @@ async function startFirebaseLiveSync(){
       if(ch.type==='removed')await applyCloudDelete(store,id,data);
       else await applyCloudUpsert(store,id,data)
      }
-     const active=document.activeElement;const keep=active&&/^(INPUT|TEXTAREA)$/.test(active.tagName)&&active.id?{id:active.id,value:active.value,start:active.selectionStart,end:active.selectionEnd}:null;
-     await loadData();renderAll();
-     if(keep){const restored=$(keep.id);if(restored){restored.value=keep.value;try{restored.focus({preventScroll:true});restored.setSelectionRange(keep.start,keep.end)}catch(e){}}}
+     // Los cambios remotos no deben reconstruir el formulario que el usuario está editando.
+     // Las notificaciones solo refrescan su campana, no el catálogo ni sus filtros.
+     const changes=snap.docChanges();
+     if(changes.length){
+       if(store==='notifications'){
+         await loadNotifications();
+       }else{
+         const editing=document.activeElement;
+         const busy=editing&&/^(INPUT|TEXTAREA|SELECT)$/.test(editing.tagName)&&
+           !editing.disabled&&editing.closest('main, .main, #content, .page, .modal, .modalContent');
+         if(busy){
+           window.__erpDeferredCloudRender=true;
+         }else{
+           await loadData();renderAll();window.__erpDeferredCloudRender=false;
+         }
+       }
+     }
      firebaseRuntime.state='AL_DIA';firebaseRuntime.detail='Firebase First multi-PC activo'
     }catch(e){console.error(e);firebaseLive.errors++;pushSyncEvent('ERROR',store,'',e?.message||String(e))}
    },e=>{console.error(e);firebaseLive.errors++;firebaseRuntime.state='ERROR';firebaseRuntime.detail=e?.message||String(e);renderAdministration()});
@@ -3743,6 +3795,18 @@ async function startFirebaseLiveSync(){
   console.error(e);firebaseLive.enabled=false;firebaseRuntime.state='ERROR';firebaseRuntime.detail=e?.message||String(e);renderAdministration();return false
  }
 }
+// Aplicar el refresco pendiente al terminar la interacción, sin borrar la escritura.
+document.addEventListener('focusout',()=>{
+ if(!window.__erpDeferredCloudRender)return;
+ clearTimeout(window.__erpDeferredRenderTimer);
+ window.__erpDeferredRenderTimer=setTimeout(async()=>{
+   if(!window.__erpDeferredCloudRender)return;
+   const active=document.activeElement;
+   if(active&&/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)&&active.closest('main, .main, #content, .page, .modal, .modalContent'))return;
+   window.__erpDeferredCloudRender=false;
+   try{await loadData();renderAll()}catch(e){console.warn('Refresco diferido',e)}
+ },350);
+},true);
 function stopFirebaseLiveSync(){
  firebaseLive.listeners.forEach(u=>{try{u()}catch{}});
  firebaseLive.listeners=[];firebaseLive.enabled=false;firebaseRuntime.detail='Sincronización automática detenida';pushSyncEvent('SISTEMA','firebase','','Live Sync detenido');renderAdministration()
@@ -4169,7 +4233,8 @@ function showPwaUpdate(reg){
  pwaRuntime.updateAvailable=!!pwaRuntime.waitingWorker;
  pwaRuntime.status=pwaRuntime.updateAvailable?'DISPONIBLE':'ACTUAL';
  const b=$('pwaUpdateBanner');if(b)b.classList.toggle('active',pwaRuntime.updateAvailable);
- const t=$('pwaUpdateText');if(t)t.textContent=`Versión instalada ${VERSION}. Hay archivos nuevos listos para activar.`;
+ const t=$('pwaUpdateText');if(t)t.textContent=`Versión instalada ${VERSION}. Una nueva compilación está lista. Guarde su trabajo y pulse Actualizar ahora.`;
+ if(pwaRuntime.updateAvailable&&!pwaRuntime.announced){pwaRuntime.announced=true;toast('⬆ Nueva versión disponible: actualice cuando termine su trabajo');}
  if(currentPage==='administracion'&&adminTab==='version')renderAdministration()
 }
 function dismissPwaUpdate(){const b=$('pwaUpdateBanner');if(b)b.classList.remove('active')}
@@ -4198,7 +4263,7 @@ async function checkPwaUpdate(manual=true){
 }
 async function applyPwaUpdate(){
  if(!pwaRuntime.waitingWorker)return toast('No hay actualización pendiente');
- if(effectiveRole()!=='Administrador')return permissionDenied('aplicar actualización','Administración');
+ // Cualquier usuario puede activar una actualización ya publicada; no altera datos ni permisos.
  const pending=await firebaseOutbox().catch(()=>[]);
  if(pending.length){
   toast(`Hay ${pending.length} cambio(s) pendientes de sincronizar. Espere antes de actualizar.`);
@@ -4207,7 +4272,7 @@ async function applyPwaUpdate(){
  const ok=confirm('Antes de actualizar se recomienda descargar un respaldo integral.\n\nLa aplicación se recargará para activar la nueva versión.\n\n¿Continuar?');
  if(!ok)return;
  try{
-  await logAudit('APLICAR_ACTUALIZACION_PWA',`Actualización solicitada desde ${VERSION}`,'','Administración',{fromVersion:VERSION});
+  // La actualización de archivos no requiere escritura de auditoría ni permisos administrativos.
   localStorage.setItem('ERP_COMPRAS_LAST_UPDATE_REQUEST',JSON.stringify({from:VERSION,at:nowISO(),deviceId:localDeviceId()}));
  }catch{}
  pwaRuntime.waitingWorker.postMessage({type:'SKIP_WAITING'});
@@ -4381,7 +4446,9 @@ if('serviceWorker' in navigator)addEventListener('load',async()=>{
    location.reload()
   });
   setTimeout(()=>checkPwaUpdate(false),8000);
-  setInterval(()=>checkPwaUpdate(false),30*60*1000)
+  setInterval(()=>checkPwaUpdate(false),5*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPwaUpdate(false)});
+  addEventListener('online',()=>checkPwaUpdate(false))
  }catch(e){console.warn(e)}
 });let deferred;const installBtn=$('installBtn');addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;installBtn.style.display='block'});installBtn.onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;installBtn.style.display='none'};
 const themeBtn=$('themeBtn');function applyTheme(theme){document.body.classList.toggle('dark',theme==='dark');themeBtn.textContent=theme==='dark'?'☀':'☾';themeBtn.title=theme==='dark'?'Cambiar a tema claro':'Cambiar a tema oscuro';$('themeMeta').setAttribute('content',theme==='dark'?'#07111f':'#f4f7fb');localStorage.setItem('ERP_COMPRAS_V4_THEME',theme)}applyTheme(localStorage.getItem('ERP_COMPRAS_V4_THEME')||'light');themeBtn.onclick=()=>applyTheme(document.body.classList.contains('dark')?'light':'dark');
