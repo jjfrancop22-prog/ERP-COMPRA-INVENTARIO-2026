@@ -1,0 +1,19 @@
+ERP COMPRAS C14.5.4.41 - PAQUETE DE PUBLICACION LIMPIO (REVISION 42)
+
+Este ERP es ESTATICO. No contiene package.json, src/ ni usa Vite.
+Netlify debe publicar la raiz del repositorio (publish = ".").
+
+IMPORTANTE: subir archivos nuevos NO BORRA archivos viejos del repositorio.
+Si Netlify sigue mostrando erp-planificacion-nextgen-v29 o vite build,
+EL REPOSITORIO CONTIENE ARCHIVOS AJENOS O NETLIFY APUNTA AL REPO EQUIVOCADO.
+
+PASOS:
+1. Preferible: crear repositorio NUEVO exclusivo para ERP Compras.
+2. Subir UNICAMENTE el contenido de este ZIP a la raiz del repositorio.
+3. No subir node_modules, src/firebase.js, package.json ni package-lock.json de Planificacion.
+4. Conectar Netlify al repositorio nuevo. Configurar: base vacia, build command vacio (o el echo definido en netlify.toml), publish directory ".", functions "netlify/functions".
+5. Si usa repositorio existente, eliminar de GitHub los archivos ajenos; .gitignore NO elimina archivos ya versionados.
+6. Si en Netlify hay variables de entorno con nombres de SECRETS_SCAN..., revisarlas: pueden sobrescribir configuracion. La clave web Firebase se encuentra en index.html y se permite exclusivamente su valor publico en netlify.toml. Nunca colocar secretos privados en frontend.
+7. Ejecutar deploy sin cache y comprobar que el log NO contenga vite build ni src/firebase.js.
+
+No se ha probado despliegue remoto. Esta correccion cambia configuracion de publicacion, no la logica del ERP.

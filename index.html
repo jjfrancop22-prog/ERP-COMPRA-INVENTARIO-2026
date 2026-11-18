@@ -4457,6 +4457,36 @@ loadData().then(async()=>{firebaseRuntime.pending=(await firebaseOutbox()).lengt
 
 window.activateProviderTab=activateProviderTab;
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('loginGate')&&!$('loginGate').classList.contains('hidden')&&document.activeElement?.id==='gate_password')gateLogin()});
+
+/* C14.5.4.43 — Buscadores estables: no reconstruir el campo durante cada pulsación.
+   Conserva los filtros y funciones originales, ejecutándolos tras una pausa breve. */
+(function installStableSearchInputs(){
+  const timers=new Map();
+  const searchIds=new Set(['qProv','product_q','request_q','order_q','cxp_q','alert_q','audit_q','inv_master_q']);
+  document.addEventListener('input',function(event){
+    const field=event.target;
+    if(!(field instanceof HTMLInputElement)||field.type==='checkbox'||field.type==='number')return;
+    const placeholder=(field.getAttribute('placeholder')||'').toLocaleLowerCase('es');
+    if(!searchIds.has(field.id)&&!placeholder.startsWith('buscar ')&&!placeholder.startsWith('buscar…'))return;
+    const original=field.oninput;
+    if(typeof original!=='function')return;
+    // Detiene solo la actualización destructiva del listado, no la escritura del usuario.
+    event.stopImmediatePropagation();
+    const key=field.id||field;
+    clearTimeout(timers.get(key));
+    const value=field.value,position=field.selectionStart;
+    timers.set(key,setTimeout(function(){
+      timers.delete(key);
+      if(!field.isConnected)return;
+      // El handler existente mantiene toda la lógica de filtros y paginación.
+      original.call(field,{type:'input',target:field,currentTarget:field});
+      const current=field.id?document.getElementById(field.id):null;
+      if(current&&current!==field&&document.activeElement!==current){
+        try{current.focus({preventScroll:true});current.setSelectionRange(Math.min(position??value.length,current.value.length),Math.min(position??value.length,current.value.length))}catch(_e){}
+      }
+    },230));
+  },true);
+})();
 </script>
 </body>
 </html>

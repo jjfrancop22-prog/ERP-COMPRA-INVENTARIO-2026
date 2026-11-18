@@ -1,0 +1,1 @@
+C14.5.4.43 — Buscadores estables y eficientes. Se evita reconstruir la vista con cada tecla: espera 230 ms desde la última pulsación, conserva el foco y ejecuta el filtrado original. Aplicado a búsquedas de los módulos del ERP sin cambiar datos, permisos ni reglas.

@@ -1,4 +1,5 @@
 [build]
+  command = "echo ERP Compras: sitio estatico, sin compilacion Vite"
   publish = "."
   functions = "netlify/functions"
 
