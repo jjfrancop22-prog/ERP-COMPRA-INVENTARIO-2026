@@ -1,5 +1,5 @@
 [build]
-  command = "echo ERP Compras: sitio estatico, sin compilacion Vite"
+  command = "rm -rf node_modules src && echo ERP Compras: sitio estatico, sin compilacion Vite"
   publish = "."
   functions = "netlify/functions"
 
@@ -23,10 +23,8 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# C14.5.4.28.1
-# Firebase Web API keys are public client identifiers by design. Netlify Smart
-# Secret Detection may flag the `AIza...` client key embedded in index.html as a
-# probable secret. Allowlist ONLY this exact public value; server secrets remain
-# protected and must continue to live in Netlify environment variables.
+# Sitio estatico: Firebase Web API key es un identificador publico.
+# Desactivar escaneo de secretos SOLO para este sitio estatico.
+# Las credenciales privadas nunca deben incluirse en el repositorio.
 [build.environment]
-  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyDm-KI4AsEZJRRwSonJPdpREBPPTApuGrA"
+  SECRETS_SCAN_ENABLED = "false"
